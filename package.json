@@ -1,0 +1,36 @@
+{
+  "name": "glucide-design",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boluge/GlucideDesign.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/boluge/GlucideDesign/issues"
+  },
+  "homepage": "https://github.com/boluge/GlucideDesign#readme",
+  "devDependencies": {
+    "autoprefixer": "^6.0.3",
+    "css-mqpacker": "^4.0.0",
+    "cssnano": "^3.2.0",
+    "cssnext": "^1.8.4",
+    "gulp": "^3.9.0",
+    "gulp-postcss": "^6.0.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.0.4",
+    "gulp-sourcemaps": "^1.6.0",
+    "postcss-brunch": "^0.5.0",
+    "postcss-color-function": "^2.0.0",
+    "postcss-nested": "^1.0.0",
+    "precss": "^1.2.3",
+    "rucksack-css": "^0.8.2",
+    "susy": "^2.2.6"
+  }
+}

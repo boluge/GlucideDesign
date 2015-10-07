@@ -1,0 +1,10 @@
+@import "prepross.css";
+
+body {
+	background: red;
+	padding: 0;
+	margin: 0;
+	.header {
+		background: #bada55;
+	}
+}
