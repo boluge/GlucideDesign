@@ -3,7 +3,7 @@ var postcss = require('gulp-postcss');
 var rename = require('gulp-rename');
 var sourcemaps = require('gulp-sourcemaps');
 var sass = require('gulp-sass');
-var vulcanize = require('gulp-vulcanize');
+var polybuild = require('polybuild');
 
 var configcss = [
     require('precss'),
@@ -13,13 +13,6 @@ var configcss = [
     require("css-mqpacker")(),
     //require('cssnano')
 ]
-
-var vulcan = {
-  inlineScripts: true,
-  inlineCss: true,
-  implicitStrip: true,
-  stripComments: true
-}
 
 gulp.task('sass', function(){
 	gulp.src('sass/prepross.scss')
@@ -36,6 +29,6 @@ gulp.task('css', ['sass'], function(){
 
 gulp.task('polymer', function(){
 	gulp.src('elements/elements.html')
-		.pipe(vulcanize(vulcan))
+		.pipe(polybuild({ maximumCrush: true }))
 		.pipe(gulp.dest('elements/'))
 })
