@@ -1,9 +1,11 @@
-var gulp = require('gulp');
-var postcss = require('gulp-postcss');
-var rename = require('gulp-rename');
-var sourcemaps = require('gulp-sourcemaps');
-var sass = require('gulp-sass');
-var polybuild = require('polybuild');
+var gulp 		= require('gulp');
+var postcss 	= require('gulp-postcss');
+var rename 		= require('gulp-rename');
+var sourcemaps 	= require('gulp-sourcemaps');
+var sass 		= require('gulp-sass');
+var polybuild 	= require('polybuild');
+var browserSync = require('browser-sync').create();
+var reload      = browserSync.reload;
 
 var configcss = [
     require('precss'),
@@ -31,4 +33,13 @@ gulp.task('polymer', function(){
 	gulp.src('elements/elements.html')
 		.pipe(polybuild({ maximumCrush: true }))
 		.pipe(gulp.dest('elements/'))
+})
+
+gulp.task('default', function () {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+    gulp.watch("*.html").on("change", browserSync.reload);
 })

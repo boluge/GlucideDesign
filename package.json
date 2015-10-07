@@ -18,6 +18,7 @@
   "homepage": "https://github.com/boluge/GlucideDesign#readme",
   "devDependencies": {
     "autoprefixer": "^6.0.3",
+    "browser-sync": "^2.9.10",
     "css-mqpacker": "^4.0.0",
     "cssnano": "^3.2.0",
     "cssnext": "^1.8.4",
