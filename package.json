@@ -1,19 +1,9 @@
 {
   "name": "glucide-design",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/boluge/GlucideDesign.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/boluge/GlucideDesign/issues"
   },
   "homepage": "https://github.com/boluge/GlucideDesign#readme",
   "devDependencies": {
@@ -27,7 +17,6 @@
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.0.4",
     "gulp-sourcemaps": "^1.6.0",
-    "gulp-vulcanize": "^6.0.1",
     "polybuild": "^1.0.5",
     "postcss-brunch": "^0.5.0",
     "postcss-color-function": "^2.0.0",
