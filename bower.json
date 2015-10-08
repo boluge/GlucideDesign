@@ -23,6 +23,9 @@
     "paper-drawer-panel": "PolymerElements/paper-drawer-panel#~1.0.3",
     "paper-toolbar": "PolymerElements/paper-toolbar#~1.0.4",
     "paper-icon-button": "PolymerElements/paper-icon-button#~1.0.4",
-    "paper-menu-button": "PolymerElements/paper-menu-button#~1.0.3"
+    "paper-menu-button": "PolymerElements/paper-menu-button#~1.0.3",
+    "paper-menu": "PolymerElements/paper-menu#~1.1.1",
+    "iron-collapse": "PolymerElements/iron-collapse#~1.0.3",
+    "paper-item": "PolymerElements/paper-item#~1.0.3"
   }
 }

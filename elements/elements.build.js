@@ -10463,6 +10463,151 @@ transform: 'translateY(-20px)'
 return this._effect;
 }
 });
+Polymer.IronMenuBehaviorImpl = {
+properties: {
+focusedItem: {
+observer: '_focusedItemChanged',
+readOnly: true,
+type: Object
+},
+attrForItemTitle: { type: String }
+},
+hostAttributes: {
+'role': 'menu',
+'tabindex': '0'
+},
+observers: ['_updateMultiselectable(multi)'],
+listeners: {
+'focus': '_onFocus',
+'keydown': '_onKeydown',
+'iron-items-changed': '_onIronItemsChanged'
+},
+keyBindings: {
+'up': '_onUpKey',
+'down': '_onDownKey',
+'esc': '_onEscKey',
+'shift+tab:keydown': '_onShiftTabDown'
+},
+attached: function () {
+this._resetTabindices();
+},
+select: function (value) {
+if (this._defaultFocusAsync) {
+this.cancelAsync(this._defaultFocusAsync);
+this._defaultFocusAsync = null;
+}
+var item = this._valueToItem(value);
+if (item && item.hasAttribute('disabled'))
+return;
+this._setFocusedItem(item);
+Polymer.IronMultiSelectableBehaviorImpl.select.apply(this, arguments);
+},
+_resetTabindices: function () {
+var selectedItem = this.multi ? this.selectedItems && this.selectedItems[0] : this.selectedItem;
+this.items.forEach(function (item) {
+item.setAttribute('tabindex', item === selectedItem ? '0' : '-1');
+}, this);
+},
+_updateMultiselectable: function (multi) {
+if (multi) {
+this.setAttribute('aria-multiselectable', 'true');
+} else {
+this.removeAttribute('aria-multiselectable');
+}
+},
+_focusWithKeyboardEvent: function (event) {
+for (var i = 0, item; item = this.items[i]; i++) {
+var attr = this.attrForItemTitle || 'textContent';
+var title = item[attr] || item.getAttribute(attr);
+if (title && title.trim().charAt(0).toLowerCase() === String.fromCharCode(event.keyCode).toLowerCase()) {
+this._setFocusedItem(item);
+break;
+}
+}
+},
+_focusPrevious: function () {
+var length = this.items.length;
+var index = (Number(this.indexOf(this.focusedItem)) - 1 + length) % length;
+this._setFocusedItem(this.items[index]);
+},
+_focusNext: function () {
+var index = (Number(this.indexOf(this.focusedItem)) + 1) % this.items.length;
+this._setFocusedItem(this.items[index]);
+},
+_applySelection: function (item, isSelected) {
+if (isSelected) {
+item.setAttribute('aria-selected', 'true');
+} else {
+item.removeAttribute('aria-selected');
+}
+Polymer.IronSelectableBehavior._applySelection.apply(this, arguments);
+},
+_focusedItemChanged: function (focusedItem, old) {
+old && old.setAttribute('tabindex', '-1');
+if (focusedItem) {
+focusedItem.setAttribute('tabindex', '0');
+focusedItem.focus();
+}
+},
+_onIronItemsChanged: function (event) {
+var mutations = event.detail;
+var mutation;
+var index;
+for (index = 0; index < mutations.length; ++index) {
+mutation = mutations[index];
+if (mutation.addedNodes.length) {
+this._resetTabindices();
+break;
+}
+}
+},
+_onShiftTabDown: function (event) {
+var oldTabIndex;
+Polymer.IronMenuBehaviorImpl._shiftTabPressed = true;
+oldTabIndex = this.getAttribute('tabindex');
+this.setAttribute('tabindex', '-1');
+this.async(function () {
+this.setAttribute('tabindex', oldTabIndex);
+Polymer.IronMenuBehaviorImpl._shiftTabPressed = false;
+}, 1);
+},
+_onFocus: function (event) {
+if (Polymer.IronMenuBehaviorImpl._shiftTabPressed) {
+return;
+}
+this.blur();
+this._setFocusedItem(null);
+this._defaultFocusAsync = this.async(function () {
+var selectedItem = this.multi ? this.selectedItems && this.selectedItems[0] : this.selectedItem;
+if (selectedItem) {
+this._setFocusedItem(selectedItem);
+} else {
+this._setFocusedItem(this.items[0]);
+}
+}, 100);
+},
+_onUpKey: function (event) {
+this._focusPrevious();
+},
+_onDownKey: function (event) {
+this._focusNext();
+},
+_onEscKey: function (event) {
+this.focusedItem.blur();
+},
+_onKeydown: function (event) {
+if (this.keyboardEventMatchesKeys(event, 'up down esc')) {
+return;
+}
+this._focusWithKeyboardEvent(event);
+}
+};
+Polymer.IronMenuBehaviorImpl._shiftTabPressed = false;
+Polymer.IronMenuBehavior = [
+Polymer.IronMultiSelectableBehavior,
+Polymer.IronA11yKeysBehavior,
+Polymer.IronMenuBehaviorImpl
+];
 Polymer({
 is: 'iron-icon',
 properties: {
@@ -10514,6 +10659,82 @@ this._img.draggable = false;
 this._img.src = this.src;
 Polymer.dom(this.root).appendChild(this._img);
 }
+}
+});
+Polymer({
+is: 'iron-collapse',
+properties: {
+horizontal: {
+type: Boolean,
+value: false,
+observer: '_horizontalChanged'
+},
+opened: {
+type: Boolean,
+value: false,
+notify: true,
+observer: '_openedChanged'
+}
+},
+hostAttributes: {
+role: 'group',
+'aria-expanded': 'false'
+},
+listeners: { transitionend: '_transitionEnd' },
+ready: function () {
+this._enableTransition = true;
+},
+toggle: function () {
+this.opened = !this.opened;
+},
+show: function () {
+this.opened = true;
+},
+hide: function () {
+this.opened = false;
+},
+updateSize: function (size, animated) {
+this.enableTransition(animated);
+var s = this.style;
+var nochange = s[this.dimension] === size;
+s[this.dimension] = size;
+if (animated && nochange) {
+this._transitionEnd();
+}
+},
+enableTransition: function (enabled) {
+this.style.transitionDuration = enabled && this._enableTransition ? '' : '0s';
+},
+_horizontalChanged: function () {
+this.dimension = this.horizontal ? 'width' : 'height';
+this.style.transitionProperty = this.dimension;
+},
+_openedChanged: function () {
+if (this.opened) {
+this.toggleClass('iron-collapse-closed', false);
+this.updateSize('auto', false);
+var s = this._calcSize();
+this.updateSize('0px', false);
+this.offsetHeight;
+this.updateSize(s, true);
+} else {
+this.toggleClass('iron-collapse-opened', false);
+this.updateSize(this._calcSize(), false);
+this.offsetHeight;
+this.updateSize('0px', true);
+}
+this.setAttribute('aria-expanded', this.opened ? 'true' : 'false');
+},
+_transitionEnd: function () {
+if (this.opened) {
+this.updateSize('auto', false);
+}
+this.toggleClass('iron-collapse-closed', !this.opened);
+this.toggleClass('iron-collapse-opened', this.opened);
+this.enableTransition(false);
+},
+_calcSize: function () {
+return this.getBoundingClientRect()[this.dimension] + 'px';
 }
 });
 (function () {
@@ -11648,3 +11869,20 @@ PaperMenuButton.ANIMATION_CUBIC_BEZIER = 'cubic-bezier(.3,.95,.5,1)';
 PaperMenuButton.MAX_ANIMATION_TIME_MS = 400;
 Polymer.PaperMenuButton = PaperMenuButton;
 }());
+(function () {
+Polymer({
+is: 'paper-menu',
+behaviors: [Polymer.IronMenuBehavior]
+});
+}());
+Polymer({
+is: 'paper-item',
+hostAttributes: {
+role: 'listitem',
+tabindex: '0'
+},
+behaviors: [
+Polymer.IronControlState,
+Polymer.IronButtonState
+]
+});
