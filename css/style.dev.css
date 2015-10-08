@@ -21,3 +21,7 @@ body {
 		color: $browser-link;
 	}
 }
+
+paper-header-panel .paper-toolbar-0 {
+	background: #263238;
+}
