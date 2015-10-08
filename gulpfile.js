@@ -12,9 +12,8 @@ var reload      = browserSync.reload;
 var configcss = [
     require('precss'),
     require('rucksack-css'),
-    require("postcss-color-function"),
     require('autoprefixer')({ browsers: ['last 5 versions'] }),
-    require("css-mqpacker")(),
+    require('css-mqpacker'),
     require('cssnano')
 ]
 
@@ -22,7 +21,6 @@ var vulcanize = {
   inlineScripts: true,
   inlineCss: true
 }
-
 
 gulp.task('sass', function(){
 	return gulp.src('sass/prepross.scss')
@@ -45,13 +43,13 @@ gulp.task('polymer', function(){
 		.pipe(gulp.dest('elements/'))
 })
 
-gulp.task('default',['css'], function () {
+gulp.task('default',['css','polymer'], function () {
     browserSync.init({
         server: {
             baseDir: "./"
         }
     });
     gulp.watch(["sass/*.scss","css/style.dev.css"], ['css']);
-    //gulp.watch("elements/elements.html", ['polymer']);
-    gulp.watch(["css/style.css", "*.html", "elements/elements.build.html"]).on("change", browserSync.reload);
+    gulp.watch("elements/elements.html", ['polymer']);
+    gulp.watch(["css/style.css", "index.html", "elements/elements.build.html"]).on("change", browserSync.reload);
 })

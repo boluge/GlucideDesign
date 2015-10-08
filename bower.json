@@ -19,6 +19,10 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#~1.1.4",
-    "paper-header-panel": "PolymerElements/paper-header-panel#~1.0.5"
+    "paper-header-panel": "PolymerElements/paper-header-panel#~1.0.5",
+    "paper-drawer-panel": "PolymerElements/paper-drawer-panel#~1.0.3",
+    "paper-toolbar": "PolymerElements/paper-toolbar#~1.0.4",
+    "paper-icon-button": "PolymerElements/paper-icon-button#~1.0.4",
+    "paper-menu-button": "PolymerElements/paper-menu-button#~1.0.3"
   }
 }

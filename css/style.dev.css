@@ -1,8 +1,23 @@
 @import "prepross.css";
-@import url(https://fonts.googleapis.com/css?family=Lato:400,300,700);
+
+$browser-background: #08c;
+$browser-text: #fff;
+$browser-link: #FFEB3B;
 
 body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
 	margin: 0;
+}
+
+.browserupgrade {
+	margin: 0;
+	background: $browser-background;
+	color: $browser-text;
+	text-align: center;
+	line-height: 50px;
+	font-weight: 300;
+	a{
+		color: $browser-link;
+	}
 }

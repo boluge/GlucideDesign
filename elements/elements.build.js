@@ -6334,6 +6334,5317 @@ this.fire('dom-change');
 }
 });
 (function () {
+var metaDatas = {};
+var metaArrays = {};
+Polymer.IronMeta = Polymer({
+is: 'iron-meta',
+properties: {
+type: {
+type: String,
+value: 'default',
+observer: '_typeChanged'
+},
+key: {
+type: String,
+observer: '_keyChanged'
+},
+value: {
+type: Object,
+notify: true,
+observer: '_valueChanged'
+},
+self: {
+type: Boolean,
+observer: '_selfChanged'
+},
+list: {
+type: Array,
+notify: true
+}
+},
+factoryImpl: function (config) {
+if (config) {
+for (var n in config) {
+switch (n) {
+case 'type':
+case 'key':
+case 'value':
+this[n] = config[n];
+break;
+}
+}
+}
+},
+created: function () {
+this._metaDatas = metaDatas;
+this._metaArrays = metaArrays;
+},
+_keyChanged: function (key, old) {
+this._resetRegistration(old);
+},
+_valueChanged: function (value) {
+this._resetRegistration(this.key);
+},
+_selfChanged: function (self) {
+if (self) {
+this.value = this;
+}
+},
+_typeChanged: function (type) {
+this._unregisterKey(this.key);
+if (!metaDatas[type]) {
+metaDatas[type] = {};
+}
+this._metaData = metaDatas[type];
+if (!metaArrays[type]) {
+metaArrays[type] = [];
+}
+this.list = metaArrays[type];
+this._registerKeyValue(this.key, this.value);
+},
+byKey: function (key) {
+return this._metaData && this._metaData[key];
+},
+_resetRegistration: function (oldKey) {
+this._unregisterKey(oldKey);
+this._registerKeyValue(this.key, this.value);
+},
+_unregisterKey: function (key) {
+this._unregister(key, this._metaData, this.list);
+},
+_registerKeyValue: function (key, value) {
+this._register(key, value, this._metaData, this.list);
+},
+_register: function (key, value, data, list) {
+if (key && data && value !== undefined) {
+data[key] = value;
+list.push(value);
+}
+},
+_unregister: function (key, data, list) {
+if (key && data) {
+if (key in data) {
+var value = data[key];
+delete data[key];
+this.arrayDelete(list, value);
+}
+}
+}
+});
+Polymer.IronMetaQuery = Polymer({
+is: 'iron-meta-query',
+properties: {
+type: {
+type: String,
+value: 'default',
+observer: '_typeChanged'
+},
+key: {
+type: String,
+observer: '_keyChanged'
+},
+value: {
+type: Object,
+notify: true,
+readOnly: true
+},
+list: {
+type: Array,
+notify: true
+}
+},
+factoryImpl: function (config) {
+if (config) {
+for (var n in config) {
+switch (n) {
+case 'type':
+case 'key':
+this[n] = config[n];
+break;
+}
+}
+}
+},
+created: function () {
+this._metaDatas = metaDatas;
+this._metaArrays = metaArrays;
+},
+_keyChanged: function (key) {
+this._setValue(this._metaData && this._metaData[key]);
+},
+_typeChanged: function (type) {
+this._metaData = metaDatas[type];
+this.list = metaArrays[type];
+if (this.key) {
+this._keyChanged(this.key);
+}
+},
+byKey: function (key) {
+return this._metaData && this._metaData[key];
+}
+});
+}());
+Polymer({
+is: 'iron-iconset-svg',
+properties: {
+name: {
+type: String,
+observer: '_nameChanged'
+},
+size: {
+type: Number,
+value: 24
+}
+},
+getIconNames: function () {
+this._icons = this._createIconMap();
+return Object.keys(this._icons).map(function (n) {
+return this.name + ':' + n;
+}, this);
+},
+applyIcon: function (element, iconName) {
+element = element.root || element;
+this.removeIcon(element);
+var svg = this._cloneIcon(iconName);
+if (svg) {
+var pde = Polymer.dom(element);
+pde.insertBefore(svg, pde.childNodes[0]);
+return element._svgIcon = svg;
+}
+return null;
+},
+removeIcon: function (element) {
+if (element._svgIcon) {
+Polymer.dom(element).removeChild(element._svgIcon);
+element._svgIcon = null;
+}
+},
+_nameChanged: function () {
+new Polymer.IronMeta({
+type: 'iconset',
+key: this.name,
+value: this
+});
+this.async(function () {
+this.fire('iron-iconset-added', this, { node: window });
+});
+},
+_createIconMap: function () {
+var icons = Object.create(null);
+Polymer.dom(this).querySelectorAll('[id]').forEach(function (icon) {
+icons[icon.id] = icon;
+});
+return icons;
+},
+_cloneIcon: function (id) {
+this._icons = this._icons || this._createIconMap();
+return this._prepareSvgClone(this._icons[id], this.size);
+},
+_prepareSvgClone: function (sourceSvg, size) {
+if (sourceSvg) {
+var content = sourceSvg.cloneNode(true), svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'), viewBox = content.getAttribute('viewBox') || '0 0 ' + size + ' ' + size;
+svg.setAttribute('viewBox', viewBox);
+svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+svg.style.cssText = 'pointer-events: none; display: block; width: 100%; height: 100%;';
+svg.appendChild(content).removeAttribute('id');
+return svg;
+}
+return null;
+}
+});
+Polymer({
+is: 'iron-media-query',
+properties: {
+queryMatches: {
+type: Boolean,
+value: false,
+readOnly: true,
+notify: true
+},
+query: {
+type: String,
+observer: 'queryChanged'
+},
+_boundMQHandler: {
+value: function () {
+return this.queryHandler.bind(this);
+}
+}
+},
+attached: function () {
+this.queryChanged();
+},
+detached: function () {
+this._remove();
+},
+_add: function () {
+if (this._mq) {
+this._mq.addListener(this._boundMQHandler);
+}
+},
+_remove: function () {
+if (this._mq) {
+this._mq.removeListener(this._boundMQHandler);
+}
+this._mq = null;
+},
+queryChanged: function () {
+this._remove();
+var query = this.query;
+if (!query) {
+return;
+}
+if (query[0] !== '(') {
+query = '(' + query + ')';
+}
+this._mq = window.matchMedia(query);
+this._add();
+this.queryHandler(this._mq);
+},
+queryHandler: function (mq) {
+this._setQueryMatches(mq.matches);
+}
+});
+Polymer.IronSelection = function (selectCallback) {
+this.selection = [];
+this.selectCallback = selectCallback;
+};
+Polymer.IronSelection.prototype = {
+get: function () {
+return this.multi ? this.selection.slice() : this.selection[0];
+},
+clear: function (excludes) {
+this.selection.slice().forEach(function (item) {
+if (!excludes || excludes.indexOf(item) < 0) {
+this.setItemSelected(item, false);
+}
+}, this);
+},
+isSelected: function (item) {
+return this.selection.indexOf(item) >= 0;
+},
+setItemSelected: function (item, isSelected) {
+if (item != null) {
+if (isSelected) {
+this.selection.push(item);
+} else {
+var i = this.selection.indexOf(item);
+if (i >= 0) {
+this.selection.splice(i, 1);
+}
+}
+if (this.selectCallback) {
+this.selectCallback(item, isSelected);
+}
+}
+},
+select: function (item) {
+if (this.multi) {
+this.toggle(item);
+} else if (this.get() !== item) {
+this.setItemSelected(this.get(), false);
+this.setItemSelected(item, true);
+}
+},
+toggle: function (item) {
+this.setItemSelected(item, !this.isSelected(item));
+}
+};
+Polymer.IronSelectableBehavior = {
+properties: {
+attrForSelected: {
+type: String,
+value: null
+},
+selected: {
+type: String,
+notify: true
+},
+selectedItem: {
+type: Object,
+readOnly: true,
+notify: true
+},
+activateEvent: {
+type: String,
+value: 'tap',
+observer: '_activateEventChanged'
+},
+selectable: String,
+selectedClass: {
+type: String,
+value: 'iron-selected'
+},
+selectedAttribute: {
+type: String,
+value: null
+},
+_excludedLocalNames: {
+type: Object,
+value: function () {
+return { 'template': 1 };
+}
+}
+},
+observers: ['_updateSelected(attrForSelected, selected)'],
+created: function () {
+this._bindFilterItem = this._filterItem.bind(this);
+this._selection = new Polymer.IronSelection(this._applySelection.bind(this));
+this.__listeningForActivate = false;
+},
+attached: function () {
+this._observer = this._observeItems(this);
+this._contentObserver = this._observeContent(this);
+if (!this.selectedItem && this.selected) {
+this._updateSelected(this.attrForSelected, this.selected);
+}
+this._addListener(this.activateEvent);
+},
+detached: function () {
+if (this._observer) {
+this._observer.disconnect();
+}
+if (this._contentObserver) {
+this._contentObserver.disconnect();
+}
+this._removeListener(this.activateEvent);
+},
+get items() {
+var nodes = Polymer.dom(this).queryDistributedElements(this.selectable || '*');
+return Array.prototype.filter.call(nodes, this._bindFilterItem);
+},
+indexOf: function (item) {
+return this.items.indexOf(item);
+},
+select: function (value) {
+this.selected = value;
+},
+selectPrevious: function () {
+var length = this.items.length;
+var index = (Number(this._valueToIndex(this.selected)) - 1 + length) % length;
+this.selected = this._indexToValue(index);
+},
+selectNext: function () {
+var index = (Number(this._valueToIndex(this.selected)) + 1) % this.items.length;
+this.selected = this._indexToValue(index);
+},
+_addListener: function (eventName) {
+if (!this.isAttached || this.__listeningForActivate) {
+return;
+}
+this.__listeningForActivate = true;
+this.listen(this, eventName, '_activateHandler');
+},
+_removeListener: function (eventName) {
+this.unlisten(this, eventName, '_activateHandler');
+this.__listeningForActivate = false;
+},
+_activateEventChanged: function (eventName, old) {
+this._removeListener(old);
+this._addListener(eventName);
+},
+_updateSelected: function () {
+this._selectSelected(this.selected);
+},
+_selectSelected: function (selected) {
+this._selection.select(this._valueToItem(this.selected));
+},
+_filterItem: function (node) {
+return !this._excludedLocalNames[node.localName];
+},
+_valueToItem: function (value) {
+return value == null ? null : this.items[this._valueToIndex(value)];
+},
+_valueToIndex: function (value) {
+if (this.attrForSelected) {
+for (var i = 0, item; item = this.items[i]; i++) {
+if (this._valueForItem(item) == value) {
+return i;
+}
+}
+} else {
+return Number(value);
+}
+},
+_indexToValue: function (index) {
+if (this.attrForSelected) {
+var item = this.items[index];
+if (item) {
+return this._valueForItem(item);
+}
+} else {
+return index;
+}
+},
+_valueForItem: function (item) {
+return item[this.attrForSelected] || item.getAttribute(this.attrForSelected);
+},
+_applySelection: function (item, isSelected) {
+if (this.selectedClass) {
+this.toggleClass(this.selectedClass, isSelected, item);
+}
+if (this.selectedAttribute) {
+this.toggleAttribute(this.selectedAttribute, isSelected, item);
+}
+this._selectionChange();
+this.fire('iron-' + (isSelected ? 'select' : 'deselect'), { item: item });
+},
+_selectionChange: function () {
+this._setSelectedItem(this._selection.get());
+},
+_observeContent: function (node) {
+var content = node.querySelector('content');
+if (content && content.parentElement === node) {
+return this._observeItems(node.domHost);
+}
+},
+_observeItems: function (node) {
+var observer = new MutationObserver(function (mutations) {
+this.fire('iron-items-changed', mutations, {
+bubbles: false,
+cancelable: false
+});
+if (this.selected != null) {
+this._updateSelected();
+}
+}.bind(this));
+observer.observe(node, {
+childList: true,
+subtree: true
+});
+return observer;
+},
+_activateHandler: function (e) {
+var t = e.target;
+var items = this.items;
+while (t && t != this) {
+var i = items.indexOf(t);
+if (i >= 0) {
+var value = this._indexToValue(i);
+this._itemActivate(value, t);
+return;
+}
+t = t.parentNode;
+}
+},
+_itemActivate: function (value, item) {
+if (!this.fire('iron-activate', {
+selected: value,
+item: item
+}, { cancelable: true }).defaultPrevented) {
+this.select(value);
+}
+}
+};
+Polymer.IronMultiSelectableBehaviorImpl = {
+properties: {
+multi: {
+type: Boolean,
+value: false,
+observer: 'multiChanged'
+},
+selectedValues: {
+type: Array,
+notify: true
+},
+selectedItems: {
+type: Array,
+readOnly: true,
+notify: true
+}
+},
+observers: ['_updateSelected(attrForSelected, selectedValues)'],
+select: function (value) {
+if (this.multi) {
+if (this.selectedValues) {
+this._toggleSelected(value);
+} else {
+this.selectedValues = [value];
+}
+} else {
+this.selected = value;
+}
+},
+multiChanged: function (multi) {
+this._selection.multi = multi;
+},
+_updateSelected: function () {
+if (this.multi) {
+this._selectMulti(this.selectedValues);
+} else {
+this._selectSelected(this.selected);
+}
+},
+_selectMulti: function (values) {
+this._selection.clear();
+if (values) {
+for (var i = 0; i < values.length; i++) {
+this._selection.setItemSelected(this._valueToItem(values[i]), true);
+}
+}
+},
+_selectionChange: function () {
+var s = this._selection.get();
+if (this.multi) {
+this._setSelectedItems(s);
+} else {
+this._setSelectedItems([s]);
+this._setSelectedItem(s);
+}
+},
+_toggleSelected: function (value) {
+var i = this.selectedValues.indexOf(value);
+var unselected = i < 0;
+if (unselected) {
+this.push('selectedValues', value);
+} else {
+this.splice('selectedValues', i, 1);
+}
+this._selection.setItemSelected(this._valueToItem(value), unselected);
+}
+};
+Polymer.IronMultiSelectableBehavior = [
+Polymer.IronSelectableBehavior,
+Polymer.IronMultiSelectableBehaviorImpl
+];
+Polymer({
+is: 'iron-selector',
+behaviors: [Polymer.IronMultiSelectableBehavior]
+});
+(function () {
 'use strict';
-Polymer({ is: 'old-browser' });
+var KEY_IDENTIFIER = {
+'U+0009': 'tab',
+'U+001B': 'esc',
+'U+0020': 'space',
+'U+002A': '*',
+'U+0030': '0',
+'U+0031': '1',
+'U+0032': '2',
+'U+0033': '3',
+'U+0034': '4',
+'U+0035': '5',
+'U+0036': '6',
+'U+0037': '7',
+'U+0038': '8',
+'U+0039': '9',
+'U+0041': 'a',
+'U+0042': 'b',
+'U+0043': 'c',
+'U+0044': 'd',
+'U+0045': 'e',
+'U+0046': 'f',
+'U+0047': 'g',
+'U+0048': 'h',
+'U+0049': 'i',
+'U+004A': 'j',
+'U+004B': 'k',
+'U+004C': 'l',
+'U+004D': 'm',
+'U+004E': 'n',
+'U+004F': 'o',
+'U+0050': 'p',
+'U+0051': 'q',
+'U+0052': 'r',
+'U+0053': 's',
+'U+0054': 't',
+'U+0055': 'u',
+'U+0056': 'v',
+'U+0057': 'w',
+'U+0058': 'x',
+'U+0059': 'y',
+'U+005A': 'z',
+'U+007F': 'del'
+};
+var KEY_CODE = {
+9: 'tab',
+13: 'enter',
+27: 'esc',
+33: 'pageup',
+34: 'pagedown',
+35: 'end',
+36: 'home',
+32: 'space',
+37: 'left',
+38: 'up',
+39: 'right',
+40: 'down',
+46: 'del',
+106: '*'
+};
+var MODIFIER_KEYS = {
+'shift': 'shiftKey',
+'ctrl': 'ctrlKey',
+'alt': 'altKey',
+'meta': 'metaKey'
+};
+var KEY_CHAR = /[a-z0-9*]/;
+var IDENT_CHAR = /U\+/;
+var ARROW_KEY = /^arrow/;
+var SPACE_KEY = /^space(bar)?/;
+function transformKey(key) {
+var validKey = '';
+if (key) {
+var lKey = key.toLowerCase();
+if (lKey.length == 1) {
+if (KEY_CHAR.test(lKey)) {
+validKey = lKey;
+}
+} else if (ARROW_KEY.test(lKey)) {
+validKey = lKey.replace('arrow', '');
+} else if (SPACE_KEY.test(lKey)) {
+validKey = 'space';
+} else if (lKey == 'multiply') {
+validKey = '*';
+} else {
+validKey = lKey;
+}
+}
+return validKey;
+}
+function transformKeyIdentifier(keyIdent) {
+var validKey = '';
+if (keyIdent) {
+if (IDENT_CHAR.test(keyIdent)) {
+validKey = KEY_IDENTIFIER[keyIdent];
+} else {
+validKey = keyIdent.toLowerCase();
+}
+}
+return validKey;
+}
+function transformKeyCode(keyCode) {
+var validKey = '';
+if (Number(keyCode)) {
+if (keyCode >= 65 && keyCode <= 90) {
+validKey = String.fromCharCode(32 + keyCode);
+} else if (keyCode >= 112 && keyCode <= 123) {
+validKey = 'f' + (keyCode - 112);
+} else if (keyCode >= 48 && keyCode <= 57) {
+validKey = String(48 - keyCode);
+} else if (keyCode >= 96 && keyCode <= 105) {
+validKey = String(96 - keyCode);
+} else {
+validKey = KEY_CODE[keyCode];
+}
+}
+return validKey;
+}
+function normalizedKeyForEvent(keyEvent) {
+return transformKey(keyEvent.key) || transformKeyIdentifier(keyEvent.keyIdentifier) || transformKeyCode(keyEvent.keyCode) || transformKey(keyEvent.detail.key) || '';
+}
+function keyComboMatchesEvent(keyCombo, keyEvent) {
+return normalizedKeyForEvent(keyEvent) === keyCombo.key && !!keyEvent.shiftKey === !!keyCombo.shiftKey && !!keyEvent.ctrlKey === !!keyCombo.ctrlKey && !!keyEvent.altKey === !!keyCombo.altKey && !!keyEvent.metaKey === !!keyCombo.metaKey;
+}
+function parseKeyComboString(keyComboString) {
+return keyComboString.split('+').reduce(function (parsedKeyCombo, keyComboPart) {
+var eventParts = keyComboPart.split(':');
+var keyName = eventParts[0];
+var event = eventParts[1];
+if (keyName in MODIFIER_KEYS) {
+parsedKeyCombo[MODIFIER_KEYS[keyName]] = true;
+} else {
+parsedKeyCombo.key = keyName;
+parsedKeyCombo.event = event || 'keydown';
+}
+return parsedKeyCombo;
+}, { combo: keyComboString.split(':').shift() });
+}
+function parseEventString(eventString) {
+return eventString.split(' ').map(function (keyComboString) {
+return parseKeyComboString(keyComboString);
+});
+}
+Polymer.IronA11yKeysBehavior = {
+properties: {
+keyEventTarget: {
+type: Object,
+value: function () {
+return this;
+}
+},
+_boundKeyHandlers: {
+type: Array,
+value: function () {
+return [];
+}
+},
+_imperativeKeyBindings: {
+type: Object,
+value: function () {
+return {};
+}
+}
+},
+observers: ['_resetKeyEventListeners(keyEventTarget, _boundKeyHandlers)'],
+keyBindings: {},
+registered: function () {
+this._prepKeyBindings();
+},
+attached: function () {
+this._listenKeyEventListeners();
+},
+detached: function () {
+this._unlistenKeyEventListeners();
+},
+addOwnKeyBinding: function (eventString, handlerName) {
+this._imperativeKeyBindings[eventString] = handlerName;
+this._prepKeyBindings();
+this._resetKeyEventListeners();
+},
+removeOwnKeyBindings: function () {
+this._imperativeKeyBindings = {};
+this._prepKeyBindings();
+this._resetKeyEventListeners();
+},
+keyboardEventMatchesKeys: function (event, eventString) {
+var keyCombos = parseEventString(eventString);
+var index;
+for (index = 0; index < keyCombos.length; ++index) {
+if (keyComboMatchesEvent(keyCombos[index], event)) {
+return true;
+}
+}
+return false;
+},
+_collectKeyBindings: function () {
+var keyBindings = this.behaviors.map(function (behavior) {
+return behavior.keyBindings;
+});
+if (keyBindings.indexOf(this.keyBindings) === -1) {
+keyBindings.push(this.keyBindings);
+}
+return keyBindings;
+},
+_prepKeyBindings: function () {
+this._keyBindings = {};
+this._collectKeyBindings().forEach(function (keyBindings) {
+for (var eventString in keyBindings) {
+this._addKeyBinding(eventString, keyBindings[eventString]);
+}
+}, this);
+for (var eventString in this._imperativeKeyBindings) {
+this._addKeyBinding(eventString, this._imperativeKeyBindings[eventString]);
+}
+},
+_addKeyBinding: function (eventString, handlerName) {
+parseEventString(eventString).forEach(function (keyCombo) {
+this._keyBindings[keyCombo.event] = this._keyBindings[keyCombo.event] || [];
+this._keyBindings[keyCombo.event].push([
+keyCombo,
+handlerName
+]);
+}, this);
+},
+_resetKeyEventListeners: function () {
+this._unlistenKeyEventListeners();
+if (this.isAttached) {
+this._listenKeyEventListeners();
+}
+},
+_listenKeyEventListeners: function () {
+Object.keys(this._keyBindings).forEach(function (eventName) {
+var keyBindings = this._keyBindings[eventName];
+var boundKeyHandler = this._onKeyBindingEvent.bind(this, keyBindings);
+this._boundKeyHandlers.push([
+this.keyEventTarget,
+eventName,
+boundKeyHandler
+]);
+this.keyEventTarget.addEventListener(eventName, boundKeyHandler);
+}, this);
+},
+_unlistenKeyEventListeners: function () {
+var keyHandlerTuple;
+var keyEventTarget;
+var eventName;
+var boundKeyHandler;
+while (this._boundKeyHandlers.length) {
+keyHandlerTuple = this._boundKeyHandlers.pop();
+keyEventTarget = keyHandlerTuple[0];
+eventName = keyHandlerTuple[1];
+boundKeyHandler = keyHandlerTuple[2];
+keyEventTarget.removeEventListener(eventName, boundKeyHandler);
+}
+},
+_onKeyBindingEvent: function (keyBindings, event) {
+keyBindings.forEach(function (keyBinding) {
+var keyCombo = keyBinding[0];
+var handlerName = keyBinding[1];
+if (!event.defaultPrevented && keyComboMatchesEvent(keyCombo, event)) {
+this._triggerKeyHandler(keyCombo, handlerName, event);
+}
+}, this);
+},
+_triggerKeyHandler: function (keyCombo, handlerName, keyboardEvent) {
+var detail = Object.create(keyCombo);
+detail.keyboardEvent = keyboardEvent;
+this[handlerName].call(this, new CustomEvent(keyCombo.event, { detail: detail }));
+}
+};
+}());
+Polymer.IronControlState = {
+properties: {
+focused: {
+type: Boolean,
+value: false,
+notify: true,
+readOnly: true,
+reflectToAttribute: true
+},
+disabled: {
+type: Boolean,
+value: false,
+notify: true,
+observer: '_disabledChanged',
+reflectToAttribute: true
+},
+_oldTabIndex: { type: Number },
+_boundFocusBlurHandler: {
+type: Function,
+value: function () {
+return this._focusBlurHandler.bind(this);
+}
+}
+},
+observers: ['_changedControlState(focused, disabled)'],
+ready: function () {
+this.addEventListener('focus', this._boundFocusBlurHandler, true);
+this.addEventListener('blur', this._boundFocusBlurHandler, true);
+},
+_focusBlurHandler: function (event) {
+if (event.target === this) {
+var focused = event.type === 'focus';
+this._setFocused(focused);
+} else if (!this.shadowRoot) {
+this.fire(event.type, { sourceEvent: event }, {
+node: this,
+bubbles: event.bubbles,
+cancelable: event.cancelable
+});
+}
+},
+_disabledChanged: function (disabled, old) {
+this.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+this.style.pointerEvents = disabled ? 'none' : '';
+if (disabled) {
+this._oldTabIndex = this.tabIndex;
+this.focused = false;
+this.tabIndex = -1;
+} else if (this._oldTabIndex !== undefined) {
+this.tabIndex = this._oldTabIndex;
+}
+},
+_changedControlState: function () {
+if (this._controlStateChanged) {
+this._controlStateChanged();
+}
+}
+};
+Polymer.IronButtonStateImpl = {
+properties: {
+pressed: {
+type: Boolean,
+readOnly: true,
+value: false,
+reflectToAttribute: true,
+observer: '_pressedChanged'
+},
+toggles: {
+type: Boolean,
+value: false,
+reflectToAttribute: true
+},
+active: {
+type: Boolean,
+value: false,
+notify: true,
+reflectToAttribute: true
+},
+pointerDown: {
+type: Boolean,
+readOnly: true,
+value: false
+},
+receivedFocusFromKeyboard: {
+type: Boolean,
+readOnly: true
+},
+ariaActiveAttribute: {
+type: String,
+value: 'aria-pressed',
+observer: '_ariaActiveAttributeChanged'
+}
+},
+listeners: {
+down: '_downHandler',
+up: '_upHandler',
+tap: '_tapHandler'
+},
+observers: [
+'_detectKeyboardFocus(focused)',
+'_activeChanged(active, ariaActiveAttribute)'
+],
+keyBindings: {
+'enter:keydown': '_asyncClick',
+'space:keydown': '_spaceKeyDownHandler',
+'space:keyup': '_spaceKeyUpHandler'
+},
+_mouseEventRe: /^mouse/,
+_tapHandler: function () {
+if (this.toggles) {
+this._userActivate(!this.active);
+} else {
+this.active = false;
+}
+},
+_detectKeyboardFocus: function (focused) {
+this._setReceivedFocusFromKeyboard(!this.pointerDown && focused);
+},
+_userActivate: function (active) {
+if (this.active !== active) {
+this.active = active;
+this.fire('change');
+}
+},
+_downHandler: function (event) {
+this._setPointerDown(true);
+this._setPressed(true);
+this._setReceivedFocusFromKeyboard(false);
+},
+_upHandler: function () {
+this._setPointerDown(false);
+this._setPressed(false);
+},
+_spaceKeyDownHandler: function (event) {
+var keyboardEvent = event.detail.keyboardEvent;
+keyboardEvent.preventDefault();
+keyboardEvent.stopImmediatePropagation();
+this._setPressed(true);
+},
+_spaceKeyUpHandler: function () {
+if (this.pressed) {
+this._asyncClick();
+}
+this._setPressed(false);
+},
+_asyncClick: function () {
+this.async(function () {
+this.click();
+}, 1);
+},
+_pressedChanged: function (pressed) {
+this._changedButtonState();
+},
+_ariaActiveAttributeChanged: function (value, oldValue) {
+if (oldValue && oldValue != value && this.hasAttribute(oldValue)) {
+this.removeAttribute(oldValue);
+}
+},
+_activeChanged: function (active, ariaActiveAttribute) {
+if (this.toggles) {
+this.setAttribute(this.ariaActiveAttribute, active ? 'true' : 'false');
+} else {
+this.removeAttribute(this.ariaActiveAttribute);
+}
+this._changedButtonState();
+},
+_controlStateChanged: function () {
+if (this.disabled) {
+this._setPressed(false);
+} else {
+this._changedButtonState();
+}
+},
+_changedButtonState: function () {
+if (this._buttonStateChanged) {
+this._buttonStateChanged();
+}
+}
+};
+Polymer.IronButtonState = [
+Polymer.IronA11yKeysBehavior,
+Polymer.IronButtonStateImpl
+];
+Polymer.PaperRippleBehavior = {
+properties: {
+noink: {
+type: Boolean,
+observer: '_noinkChanged'
+}
+},
+_buttonStateChanged: function () {
+if (this.focused) {
+this.ensureRipple();
+}
+},
+_downHandler: function (event) {
+Polymer.IronButtonStateImpl._downHandler.call(this, event);
+if (this.pressed) {
+this.ensureRipple(event);
+}
+},
+ensureRipple: function (triggeringEvent) {
+if (!this.hasRipple()) {
+this._ripple = this._createRipple();
+this._ripple.noink = this.noink;
+var rippleContainer = this._rippleContainer || this.root;
+if (rippleContainer) {
+Polymer.dom(rippleContainer).appendChild(this._ripple);
+}
+var domContainer = rippleContainer === this.shadyRoot ? this : rippleContainer;
+if (triggeringEvent && domContainer.contains(triggeringEvent.target)) {
+this._ripple.uiDownAction(triggeringEvent);
+}
+}
+},
+getRipple: function () {
+this.ensureRipple();
+return this._ripple;
+},
+hasRipple: function () {
+return Boolean(this._ripple);
+},
+_createRipple: function () {
+return document.createElement('paper-ripple');
+},
+_noinkChanged: function (noink) {
+if (this.hasRipple()) {
+this._ripple.noink = noink;
+}
+}
+};
+Polymer.PaperButtonBehaviorImpl = {
+properties: {
+elevation: {
+type: Number,
+reflectToAttribute: true,
+readOnly: true
+}
+},
+observers: [
+'_calculateElevation(focused, disabled, active, pressed, receivedFocusFromKeyboard)',
+'_computeKeyboardClass(receivedFocusFromKeyboard)'
+],
+hostAttributes: {
+role: 'button',
+tabindex: '0',
+animated: true
+},
+_calculateElevation: function () {
+var e = 1;
+if (this.disabled) {
+e = 0;
+} else if (this.active || this.pressed) {
+e = 4;
+} else if (this.receivedFocusFromKeyboard) {
+e = 3;
+}
+this._setElevation(e);
+},
+_computeKeyboardClass: function (receivedFocusFromKeyboard) {
+this.classList.toggle('keyboard-focus', receivedFocusFromKeyboard);
+},
+_spaceKeyDownHandler: function (event) {
+Polymer.IronButtonStateImpl._spaceKeyDownHandler.call(this, event);
+if (this.hasRipple()) {
+this._ripple.uiDownAction();
+}
+},
+_spaceKeyUpHandler: function (event) {
+Polymer.IronButtonStateImpl._spaceKeyUpHandler.call(this, event);
+if (this.hasRipple()) {
+this._ripple.uiUpAction();
+}
+}
+};
+Polymer.PaperButtonBehavior = [
+Polymer.IronButtonState,
+Polymer.IronControlState,
+Polymer.PaperRippleBehavior,
+Polymer.PaperButtonBehaviorImpl
+];
+Polymer.PaperInkyFocusBehaviorImpl = {
+observers: ['_focusedChanged(receivedFocusFromKeyboard)'],
+_focusedChanged: function (receivedFocusFromKeyboard) {
+if (receivedFocusFromKeyboard) {
+this.ensureRipple();
+}
+if (this.hasRipple()) {
+this._ripple.holdDown = receivedFocusFromKeyboard;
+}
+},
+_createRipple: function () {
+var ripple = Polymer.PaperRippleBehavior._createRipple();
+ripple.id = 'ink';
+ripple.setAttribute('center', '');
+ripple.classList.add('circle');
+return ripple;
+}
+};
+Polymer.PaperInkyFocusBehavior = [
+Polymer.IronButtonState,
+Polymer.IronControlState,
+Polymer.PaperRippleBehavior,
+Polymer.PaperInkyFocusBehaviorImpl
+];
+Polymer.IronResizableBehavior = {
+properties: {
+_parentResizable: {
+type: Object,
+observer: '_parentResizableChanged'
+},
+_notifyingDescendant: {
+type: Boolean,
+value: false
+}
+},
+listeners: { 'iron-request-resize-notifications': '_onIronRequestResizeNotifications' },
+created: function () {
+this._interestedResizables = [];
+this._boundNotifyResize = this.notifyResize.bind(this);
+},
+attached: function () {
+this.fire('iron-request-resize-notifications', null, {
+node: this,
+bubbles: true,
+cancelable: true
+});
+if (!this._parentResizable) {
+window.addEventListener('resize', this._boundNotifyResize);
+this.notifyResize();
+}
+},
+detached: function () {
+if (this._parentResizable) {
+this._parentResizable.stopResizeNotificationsFor(this);
+} else {
+window.removeEventListener('resize', this._boundNotifyResize);
+}
+this._parentResizable = null;
+},
+notifyResize: function () {
+if (!this.isAttached) {
+return;
+}
+this._interestedResizables.forEach(function (resizable) {
+if (this.resizerShouldNotify(resizable)) {
+this._notifyDescendant(resizable);
+}
+}, this);
+this._fireResize();
+},
+assignParentResizable: function (parentResizable) {
+this._parentResizable = parentResizable;
+},
+stopResizeNotificationsFor: function (target) {
+var index = this._interestedResizables.indexOf(target);
+if (index > -1) {
+this._interestedResizables.splice(index, 1);
+this.unlisten(target, 'iron-resize', '_onDescendantIronResize');
+}
+},
+resizerShouldNotify: function (element) {
+return true;
+},
+_onDescendantIronResize: function (event) {
+if (this._notifyingDescendant) {
+event.stopPropagation();
+return;
+}
+if (!Polymer.Settings.useShadow) {
+this._fireResize();
+}
+},
+_fireResize: function () {
+this.fire('iron-resize', null, {
+node: this,
+bubbles: false
+});
+},
+_onIronRequestResizeNotifications: function (event) {
+var target = event.path ? event.path[0] : event.target;
+if (target === this) {
+return;
+}
+if (this._interestedResizables.indexOf(target) === -1) {
+this._interestedResizables.push(target);
+this.listen(target, 'iron-resize', '_onDescendantIronResize');
+}
+target.assignParentResizable(this);
+this._notifyDescendant(target);
+event.stopPropagation();
+},
+_parentResizableChanged: function (parentResizable) {
+if (parentResizable) {
+window.removeEventListener('resize', this._boundNotifyResize);
+}
+},
+_notifyDescendant: function (descendant) {
+if (!this.isAttached) {
+return;
+}
+this._notifyingDescendant = true;
+descendant.notifyResize();
+this._notifyingDescendant = false;
+}
+};
+Polymer.IronFitBehavior = {
+properties: {
+sizingTarget: {
+type: Object,
+value: function () {
+return this;
+}
+},
+fitInto: {
+type: Object,
+value: window
+},
+autoFitOnAttach: {
+type: Boolean,
+value: false
+},
+_fitInfo: { type: Object }
+},
+get _fitWidth() {
+var fitWidth;
+if (this.fitInto === window) {
+fitWidth = this.fitInto.innerWidth;
+} else {
+fitWidth = this.fitInto.getBoundingClientRect().width;
+}
+return fitWidth;
+},
+get _fitHeight() {
+var fitHeight;
+if (this.fitInto === window) {
+fitHeight = this.fitInto.innerHeight;
+} else {
+fitHeight = this.fitInto.getBoundingClientRect().height;
+}
+return fitHeight;
+},
+get _fitLeft() {
+var fitLeft;
+if (this.fitInto === window) {
+fitLeft = 0;
+} else {
+fitLeft = this.fitInto.getBoundingClientRect().left;
+}
+return fitLeft;
+},
+get _fitTop() {
+var fitTop;
+if (this.fitInto === window) {
+fitTop = 0;
+} else {
+fitTop = this.fitInto.getBoundingClientRect().top;
+}
+return fitTop;
+},
+attached: function () {
+if (this.autoFitOnAttach) {
+if (window.getComputedStyle(this).display === 'none') {
+setTimeout(function () {
+this.fit();
+}.bind(this));
+} else {
+this.fit();
+}
+}
+},
+fit: function () {
+this._discoverInfo();
+this.constrain();
+this.center();
+},
+_discoverInfo: function () {
+if (this._fitInfo) {
+return;
+}
+var target = window.getComputedStyle(this);
+var sizer = window.getComputedStyle(this.sizingTarget);
+this._fitInfo = {
+inlineStyle: {
+top: this.style.top || '',
+left: this.style.left || ''
+},
+positionedBy: {
+vertically: target.top !== 'auto' ? 'top' : target.bottom !== 'auto' ? 'bottom' : null,
+horizontally: target.left !== 'auto' ? 'left' : target.right !== 'auto' ? 'right' : null,
+css: target.position
+},
+sizedBy: {
+height: sizer.maxHeight !== 'none',
+width: sizer.maxWidth !== 'none'
+},
+margin: {
+top: parseInt(target.marginTop, 10) || 0,
+right: parseInt(target.marginRight, 10) || 0,
+bottom: parseInt(target.marginBottom, 10) || 0,
+left: parseInt(target.marginLeft, 10) || 0
+}
+};
+},
+resetFit: function () {
+if (!this._fitInfo || !this._fitInfo.sizedBy.height) {
+this.sizingTarget.style.maxHeight = '';
+this.style.top = this._fitInfo ? this._fitInfo.inlineStyle.top : '';
+}
+if (!this._fitInfo || !this._fitInfo.sizedBy.width) {
+this.sizingTarget.style.maxWidth = '';
+this.style.left = this._fitInfo ? this._fitInfo.inlineStyle.left : '';
+}
+if (this._fitInfo) {
+this.style.position = this._fitInfo.positionedBy.css;
+}
+this._fitInfo = null;
+},
+refit: function () {
+this.resetFit();
+this.fit();
+},
+constrain: function () {
+var info = this._fitInfo;
+if (!this._fitInfo.positionedBy.vertically) {
+this.style.top = '0px';
+}
+if (!this._fitInfo.positionedBy.horizontally) {
+this.style.left = '0px';
+}
+this.sizingTarget.style.boxSizing = 'border-box';
+var rect = this.getBoundingClientRect();
+if (!info.sizedBy.height) {
+this._sizeDimension(rect, info.positionedBy.vertically, 'top', 'bottom', 'Height');
+}
+if (!info.sizedBy.width) {
+this._sizeDimension(rect, info.positionedBy.horizontally, 'left', 'right', 'Width');
+}
+},
+_sizeDimension: function (rect, positionedBy, start, end, extent) {
+var info = this._fitInfo;
+var max = extent === 'Width' ? this._fitWidth : this._fitHeight;
+var flip = positionedBy === end;
+var offset = flip ? max - rect[end] : rect[start];
+var margin = info.margin[flip ? start : end];
+var offsetExtent = 'offset' + extent;
+var sizingOffset = this[offsetExtent] - this.sizingTarget[offsetExtent];
+this.sizingTarget.style['max' + extent] = max - margin - offset - sizingOffset + 'px';
+},
+center: function () {
+if (!this._fitInfo.positionedBy.vertically || !this._fitInfo.positionedBy.horizontally) {
+this.style.position = 'fixed';
+}
+if (!this._fitInfo.positionedBy.vertically) {
+var top = (this._fitHeight - this.offsetHeight) / 2 + this._fitTop;
+top -= this._fitInfo.margin.top;
+this.style.top = top + 'px';
+}
+if (!this._fitInfo.positionedBy.horizontally) {
+var left = (this._fitWidth - this.offsetWidth) / 2 + this._fitLeft;
+left -= this._fitInfo.margin.left;
+this.style.left = left + 'px';
+}
+}
+};
+Polymer.IronOverlayManager = function () {
+var overlays = [];
+var DEFAULT_Z = 10;
+var backdrops = [];
+function addOverlay(overlay) {
+var z0 = currentOverlayZ();
+overlays.push(overlay);
+var z1 = currentOverlayZ();
+if (z1 <= z0) {
+applyOverlayZ(overlay, z0);
+}
+}
+function removeOverlay(overlay) {
+var i = overlays.indexOf(overlay);
+if (i >= 0) {
+overlays.splice(i, 1);
+setZ(overlay, '');
+}
+}
+function applyOverlayZ(overlay, aboveZ) {
+setZ(overlay, aboveZ + 2);
+}
+function setZ(element, z) {
+element.style.zIndex = z;
+}
+function currentOverlay() {
+var i = overlays.length - 1;
+while (overlays[i] && !overlays[i].opened) {
+--i;
+}
+return overlays[i];
+}
+function currentOverlayZ() {
+var z;
+var current = currentOverlay();
+if (current) {
+var z1 = window.getComputedStyle(current).zIndex;
+if (!isNaN(z1)) {
+z = Number(z1);
+}
+}
+return z || DEFAULT_Z;
+}
+function focusOverlay() {
+var current = currentOverlay();
+if (current && !current.transitioning) {
+current._applyFocus();
+}
+}
+function trackBackdrop(element) {
+if (element.opened) {
+backdrops.push(element);
+} else {
+var index = backdrops.indexOf(element);
+if (index >= 0) {
+backdrops.splice(index, 1);
+}
+}
+}
+function getBackdrops() {
+return backdrops;
+}
+return {
+addOverlay: addOverlay,
+removeOverlay: removeOverlay,
+currentOverlay: currentOverlay,
+currentOverlayZ: currentOverlayZ,
+focusOverlay: focusOverlay,
+trackBackdrop: trackBackdrop,
+getBackdrops: getBackdrops
+};
+}();
+Polymer.IronOverlayBehaviorImpl = {
+properties: {
+opened: {
+observer: '_openedChanged',
+type: Boolean,
+value: false,
+notify: true
+},
+canceled: {
+observer: '_canceledChanged',
+readOnly: true,
+type: Boolean,
+value: false
+},
+withBackdrop: {
+type: Boolean,
+value: false
+},
+noAutoFocus: {
+type: Boolean,
+value: false
+},
+noCancelOnEscKey: {
+type: Boolean,
+value: false
+},
+noCancelOnOutsideClick: {
+type: Boolean,
+value: false
+},
+closingReason: { type: Object },
+_manager: {
+type: Object,
+value: Polymer.IronOverlayManager
+},
+_boundOnCaptureClick: {
+type: Function,
+value: function () {
+return this._onCaptureClick.bind(this);
+}
+},
+_boundOnCaptureKeydown: {
+type: Function,
+value: function () {
+return this._onCaptureKeydown.bind(this);
+}
+}
+},
+listeners: {
+'tap': '_onClick',
+'iron-resize': '_onIronResize'
+},
+get backdropElement() {
+return this._backdrop;
+},
+get _focusNode() {
+return Polymer.dom(this).querySelector('[autofocus]') || this;
+},
+registered: function () {
+this._backdrop = document.createElement('iron-overlay-backdrop');
+},
+ready: function () {
+this._ensureSetup();
+if (this._callOpenedWhenReady) {
+this._openedChanged();
+}
+},
+detached: function () {
+this.opened = false;
+this._completeBackdrop();
+this._manager.removeOverlay(this);
+},
+toggle: function () {
+this.opened = !this.opened;
+},
+open: function () {
+this.opened = true;
+this.closingReason = { canceled: false };
+},
+close: function () {
+this.opened = false;
+this._setCanceled(false);
+},
+cancel: function () {
+var cancelEvent = this.fire('iron-overlay-canceled', undefined, { cancelable: true });
+if (cancelEvent.defaultPrevented) {
+return;
+}
+this.opened = false;
+this._setCanceled(true);
+},
+_ensureSetup: function () {
+if (this._overlaySetup) {
+return;
+}
+this._overlaySetup = true;
+this.style.outline = 'none';
+this.style.display = 'none';
+},
+_openedChanged: function () {
+if (this.opened) {
+this.removeAttribute('aria-hidden');
+} else {
+this.setAttribute('aria-hidden', 'true');
+}
+if (!this._overlaySetup) {
+this._callOpenedWhenReady = this.opened;
+return;
+}
+if (this._openChangedAsync) {
+this.cancelAsync(this._openChangedAsync);
+}
+this._toggleListeners();
+if (this.opened) {
+this._prepareRenderOpened();
+}
+this._openChangedAsync = this.async(function () {
+this.style.display = '';
+this.offsetWidth;
+if (this.opened) {
+this._renderOpened();
+} else {
+this._renderClosed();
+}
+this._openChangedAsync = null;
+});
+},
+_canceledChanged: function () {
+this.closingReason = this.closingReason || {};
+this.closingReason.canceled = this.canceled;
+},
+_toggleListener: function (enable, node, event, boundListener, capture) {
+if (enable) {
+if (event === 'tap') {
+Polymer.Gestures.add(document, 'tap', null);
+}
+node.addEventListener(event, boundListener, capture);
+} else {
+if (event === 'tap') {
+Polymer.Gestures.remove(document, 'tap', null);
+}
+node.removeEventListener(event, boundListener, capture);
+}
+},
+_toggleListeners: function () {
+if (this._toggleListenersAsync) {
+this.cancelAsync(this._toggleListenersAsync);
+}
+this._toggleListenersAsync = this.async(function () {
+this._toggleListener(this.opened, document, 'tap', this._boundOnCaptureClick, true);
+this._toggleListener(this.opened, document, 'keydown', this._boundOnCaptureKeydown, true);
+this._toggleListenersAsync = null;
+}, 1);
+},
+_prepareRenderOpened: function () {
+this._manager.addOverlay(this);
+if (this.withBackdrop) {
+this.backdropElement.prepare();
+this._manager.trackBackdrop(this);
+}
+this._preparePositioning();
+this.fit();
+this._finishPositioning();
+},
+_renderOpened: function () {
+if (this.withBackdrop) {
+this.backdropElement.open();
+}
+this._finishRenderOpened();
+},
+_renderClosed: function () {
+if (this.withBackdrop) {
+this.backdropElement.close();
+}
+this._finishRenderClosed();
+},
+_onTransitionend: function (event) {
+if (event && event.target !== this) {
+return;
+}
+if (this.opened) {
+this._finishRenderOpened();
+} else {
+this._finishRenderClosed();
+}
+},
+_finishRenderOpened: function () {
+if (!this.noAutoFocus) {
+this._focusNode.focus();
+}
+this.fire('iron-overlay-opened');
+this._squelchNextResize = true;
+this.async(this.notifyResize);
+},
+_finishRenderClosed: function () {
+this.resetFit();
+this.style.display = 'none';
+this._completeBackdrop();
+this._manager.removeOverlay(this);
+this._focusNode.blur();
+this._manager.focusOverlay();
+this.fire('iron-overlay-closed', this.closingReason);
+this._squelchNextResize = true;
+this.async(this.notifyResize);
+},
+_completeBackdrop: function () {
+if (this.withBackdrop) {
+this._manager.trackBackdrop(this);
+this.backdropElement.complete();
+}
+},
+_preparePositioning: function () {
+this.style.transition = this.style.webkitTransition = 'none';
+this.style.transform = this.style.webkitTransform = 'none';
+this.style.display = '';
+},
+_finishPositioning: function () {
+this.style.display = 'none';
+this.style.transform = this.style.webkitTransform = '';
+this.offsetWidth;
+this.style.transition = this.style.webkitTransition = '';
+},
+_applyFocus: function () {
+if (this.opened) {
+if (!this.noAutoFocus) {
+this._focusNode.focus();
+}
+} else {
+this._focusNode.blur();
+this._manager.focusOverlay();
+}
+},
+_onCaptureClick: function (event) {
+if (!this.noCancelOnOutsideClick && this._manager.currentOverlay() == this) {
+this._cancelJob = this.async(function () {
+this.cancel();
+}, 10);
+}
+},
+_onClick: function (event) {
+if (this._cancelJob) {
+this.cancelAsync(this._cancelJob);
+this._cancelJob = null;
+}
+},
+_onCaptureKeydown: function (event) {
+var ESC = 27;
+if (!this.noCancelOnEscKey && event.keyCode === ESC) {
+this.cancel();
+event.stopPropagation();
+}
+},
+_onIronResize: function () {
+if (this._squelchNextResize) {
+this._squelchNextResize = false;
+return;
+}
+if (this.opened) {
+this.refit();
+}
+}
+};
+Polymer.IronOverlayBehavior = [
+Polymer.IronFitBehavior,
+Polymer.IronResizableBehavior,
+Polymer.IronOverlayBehaviorImpl
+];
+Polymer.NeonAnimationBehavior = {
+properties: {
+animationTiming: {
+type: Object,
+value: function () {
+return {
+duration: 500,
+easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+fill: 'both'
+};
+}
+}
+},
+registered: function () {
+new Polymer.IronMeta({
+type: 'animation',
+key: this.is,
+value: this.constructor
+});
+},
+timingFromConfig: function (config) {
+if (config.timing) {
+for (var property in config.timing) {
+this.animationTiming[property] = config.timing[property];
+}
+}
+return this.animationTiming;
+},
+setPrefixedProperty: function (node, property, value) {
+var map = {
+'transform': ['webkitTransform'],
+'transformOrigin': [
+'mozTransformOrigin',
+'webkitTransformOrigin'
+]
+};
+var prefixes = map[property];
+for (var prefix, index = 0; prefix = prefixes[index]; index++) {
+node.style[prefix] = value;
+}
+node.style[property] = value;
+},
+complete: function () {
+}
+};
+!function (a, b) {
+b['true'] = a;
+var c = {}, d = {}, e = {}, f = null;
+!function (a) {
+function b(a) {
+if ('number' == typeof a)
+return a;
+var b = {};
+for (var c in a)
+b[c] = a[c];
+return b;
+}
+function c() {
+this._delay = 0, this._endDelay = 0, this._fill = 'none', this._iterationStart = 0, this._iterations = 1, this._duration = 0, this._playbackRate = 1, this._direction = 'normal', this._easing = 'linear';
+}
+function d(b, d) {
+var e = new c();
+return d && (e.fill = 'both', e.duration = 'auto'), 'number' != typeof b || isNaN(b) ? void 0 !== b && Object.getOwnPropertyNames(b).forEach(function (c) {
+if ('auto' != b[c]) {
+if (('number' == typeof e[c] || 'duration' == c) && ('number' != typeof b[c] || isNaN(b[c])))
+return;
+if ('fill' == c && -1 == s.indexOf(b[c]))
+return;
+if ('direction' == c && -1 == t.indexOf(b[c]))
+return;
+if ('playbackRate' == c && 1 !== b[c] && a.isDeprecated('AnimationEffectTiming.playbackRate', '2014-11-28', 'Use Animation.playbackRate instead.'))
+return;
+e[c] = b[c];
+}
+}) : e.duration = b, e;
+}
+function e(a) {
+return 'number' == typeof a && (a = isNaN(a) ? { duration: 0 } : { duration: a }), a;
+}
+function f(b, c) {
+b = a.numericTimingToObject(b);
+var e = d(b, c);
+return e._easing = i(e.easing), e;
+}
+function g(a, b, c, d) {
+return 0 > a || a > 1 || 0 > c || c > 1 ? B : function (e) {
+function f(a, b, c) {
+return 3 * a * (1 - c) * (1 - c) * c + 3 * b * (1 - c) * c * c + c * c * c;
+}
+if (0 == e || 1 == e)
+return e;
+for (var g = 0, h = 1;;) {
+var i = (g + h) / 2, j = f(a, c, i);
+if (Math.abs(e - j) < 0.001)
+return f(b, d, i);
+e > j ? g = i : h = i;
+}
+};
+}
+function h(a, b) {
+return function (c) {
+if (c >= 1)
+return 1;
+var d = 1 / a;
+return c += b * d, c - c % d;
+};
+}
+function i(a) {
+var b = z.exec(a);
+if (b)
+return g.apply(this, b.slice(1).map(Number));
+var c = A.exec(a);
+if (c)
+return h(Number(c[1]), {
+start: u,
+middle: v,
+end: w
+}[c[2]]);
+var d = x[a];
+return d ? d : B;
+}
+function j(a) {
+return Math.abs(k(a) / a.playbackRate);
+}
+function k(a) {
+return a.duration * a.iterations;
+}
+function l(a, b, c) {
+return null == b ? C : b < c.delay ? D : b >= c.delay + a ? E : F;
+}
+function m(a, b, c, d, e) {
+switch (d) {
+case D:
+return 'backwards' == b || 'both' == b ? 0 : null;
+case F:
+return c - e;
+case E:
+return 'forwards' == b || 'both' == b ? a : null;
+case C:
+return null;
+}
+}
+function n(a, b, c, d) {
+return (d.playbackRate < 0 ? b - a : b) * d.playbackRate + c;
+}
+function o(a, b, c, d, e) {
+return 1 / 0 === c || c === -1 / 0 || c - d == b && e.iterations && (e.iterations + e.iterationStart) % 1 == 0 ? a : c % a;
+}
+function p(a, b, c, d) {
+return 0 === c ? 0 : b == a ? d.iterationStart + d.iterations - 1 : Math.floor(c / a);
+}
+function q(a, b, c, d) {
+var e = a % 2 >= 1, f = 'normal' == d.direction || d.direction == (e ? 'alternate-reverse' : 'alternate'), g = f ? c : b - c, h = g / b;
+return b * d.easing(h);
+}
+function r(a, b, c) {
+var d = l(a, b, c), e = m(a, c.fill, b, d, c.delay);
+if (null === e)
+return null;
+if (0 === a)
+return d === D ? 0 : 1;
+var f = c.iterationStart * c.duration, g = n(a, e, f, c), h = o(c.duration, k(c), g, f, c), i = p(c.duration, h, g, c);
+return q(i, c.duration, h, c) / c.duration;
+}
+var s = 'backwards|forwards|both|none'.split('|'), t = 'reverse|alternate|alternate-reverse'.split('|');
+c.prototype = {
+_setMember: function (b, c) {
+this['_' + b] = c, this._effect && (this._effect._timingInput[b] = c, this._effect._timing = a.normalizeTimingInput(a.normalizeTimingInput(this._effect._timingInput)), this._effect.activeDuration = a.calculateActiveDuration(this._effect._timing), this._effect._animation && this._effect._animation._rebuildUnderlyingAnimation());
+},
+get playbackRate() {
+return this._playbackRate;
+},
+set delay(a) {
+this._setMember('delay', a);
+},
+get delay() {
+return this._delay;
+},
+set endDelay(a) {
+this._setMember('endDelay', a);
+},
+get endDelay() {
+return this._endDelay;
+},
+set fill(a) {
+this._setMember('fill', a);
+},
+get fill() {
+return this._fill;
+},
+set iterationStart(a) {
+this._setMember('iterationStart', a);
+},
+get iterationStart() {
+return this._iterationStart;
+},
+set duration(a) {
+this._setMember('duration', a);
+},
+get duration() {
+return this._duration;
+},
+set direction(a) {
+this._setMember('direction', a);
+},
+get direction() {
+return this._direction;
+},
+set easing(a) {
+this._setMember('easing', a);
+},
+get easing() {
+return this._easing;
+},
+set iterations(a) {
+this._setMember('iterations', a);
+},
+get iterations() {
+return this._iterations;
+}
+};
+var u = 1, v = 0.5, w = 0, x = {
+ease: g(0.25, 0.1, 0.25, 1),
+'ease-in': g(0.42, 0, 1, 1),
+'ease-out': g(0, 0, 0.58, 1),
+'ease-in-out': g(0.42, 0, 0.58, 1),
+'step-start': h(1, u),
+'step-middle': h(1, v),
+'step-end': h(1, w)
+}, y = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*', z = new RegExp('cubic-bezier\\(' + y + ',' + y + ',' + y + ',' + y + '\\)'), A = /steps\(\s*(\d+)\s*,\s*(start|middle|end)\s*\)/, B = function (a) {
+return a;
+}, C = 0, D = 1, E = 2, F = 3;
+a.cloneTimingInput = b, a.makeTiming = d, a.numericTimingToObject = e, a.normalizeTimingInput = f, a.calculateActiveDuration = j, a.calculateTimeFraction = r, a.calculatePhase = l, a.toTimingFunction = i;
+}(c, f), function (a) {
+function b(a, b) {
+return a in h ? h[a][b] || b : b;
+}
+function c(a, c, d) {
+var g = e[a];
+if (g) {
+f.style[a] = c;
+for (var h in g) {
+var i = g[h], j = f.style[i];
+d[i] = b(i, j);
+}
+} else
+d[a] = b(a, c);
+}
+function d(b) {
+function d() {
+var a = e.length;
+null == e[a - 1].offset && (e[a - 1].offset = 1), a > 1 && null == e[0].offset && (e[0].offset = 0);
+for (var b = 0, c = e[0].offset, d = 1; a > d; d++) {
+var f = e[d].offset;
+if (null != f) {
+for (var g = 1; d - b > g; g++)
+e[b + g].offset = c + (f - c) * g / (d - b);
+b = d, c = f;
+}
+}
+}
+if (!Array.isArray(b) && null !== b)
+throw new TypeError('Keyframes must be null or an array of keyframes');
+if (null == b)
+return [];
+for (var e = b.map(function (b) {
+var d = {};
+for (var e in b) {
+var f = b[e];
+if ('offset' == e) {
+if (null != f && (f = Number(f), !isFinite(f)))
+throw new TypeError('keyframe offsets must be numbers.');
+} else {
+if ('composite' == e)
+throw {
+type: DOMException.NOT_SUPPORTED_ERR,
+name: 'NotSupportedError',
+message: 'add compositing is not supported'
+};
+f = 'easing' == e ? a.toTimingFunction(f) : '' + f;
+}
+c(e, f, d);
+}
+return void 0 == d.offset && (d.offset = null), void 0 == d.easing && (d.easing = a.toTimingFunction('linear')), d;
+}), f = !0, g = -1 / 0, h = 0; h < e.length; h++) {
+var i = e[h].offset;
+if (null != i) {
+if (g > i)
+throw {
+code: DOMException.INVALID_MODIFICATION_ERR,
+name: 'InvalidModificationError',
+message: 'Keyframes are not loosely sorted by offset. Sort or specify offsets.'
+};
+g = i;
+} else
+f = !1;
+}
+return e = e.filter(function (a) {
+return a.offset >= 0 && a.offset <= 1;
+}), f || d(), e;
+}
+var e = {
+background: [
+'backgroundImage',
+'backgroundPosition',
+'backgroundSize',
+'backgroundRepeat',
+'backgroundAttachment',
+'backgroundOrigin',
+'backgroundClip',
+'backgroundColor'
+],
+border: [
+'borderTopColor',
+'borderTopStyle',
+'borderTopWidth',
+'borderRightColor',
+'borderRightStyle',
+'borderRightWidth',
+'borderBottomColor',
+'borderBottomStyle',
+'borderBottomWidth',
+'borderLeftColor',
+'borderLeftStyle',
+'borderLeftWidth'
+],
+borderBottom: [
+'borderBottomWidth',
+'borderBottomStyle',
+'borderBottomColor'
+],
+borderColor: [
+'borderTopColor',
+'borderRightColor',
+'borderBottomColor',
+'borderLeftColor'
+],
+borderLeft: [
+'borderLeftWidth',
+'borderLeftStyle',
+'borderLeftColor'
+],
+borderRadius: [
+'borderTopLeftRadius',
+'borderTopRightRadius',
+'borderBottomRightRadius',
+'borderBottomLeftRadius'
+],
+borderRight: [
+'borderRightWidth',
+'borderRightStyle',
+'borderRightColor'
+],
+borderTop: [
+'borderTopWidth',
+'borderTopStyle',
+'borderTopColor'
+],
+borderWidth: [
+'borderTopWidth',
+'borderRightWidth',
+'borderBottomWidth',
+'borderLeftWidth'
+],
+flex: [
+'flexGrow',
+'flexShrink',
+'flexBasis'
+],
+font: [
+'fontFamily',
+'fontSize',
+'fontStyle',
+'fontVariant',
+'fontWeight',
+'lineHeight'
+],
+margin: [
+'marginTop',
+'marginRight',
+'marginBottom',
+'marginLeft'
+],
+outline: [
+'outlineColor',
+'outlineStyle',
+'outlineWidth'
+],
+padding: [
+'paddingTop',
+'paddingRight',
+'paddingBottom',
+'paddingLeft'
+]
+}, f = document.createElementNS('http://www.w3.org/1999/xhtml', 'div'), g = {
+thin: '1px',
+medium: '3px',
+thick: '5px'
+}, h = {
+borderBottomWidth: g,
+borderLeftWidth: g,
+borderRightWidth: g,
+borderTopWidth: g,
+fontSize: {
+'xx-small': '60%',
+'x-small': '75%',
+small: '89%',
+medium: '100%',
+large: '120%',
+'x-large': '150%',
+'xx-large': '200%'
+},
+fontWeight: {
+normal: '400',
+bold: '700'
+},
+outlineWidth: g,
+textShadow: { none: '0px 0px 0px transparent' },
+boxShadow: { none: '0px 0px 0px 0px transparent' }
+};
+a.normalizeKeyframes = d;
+}(c, f), function (a) {
+var b = {};
+a.isDeprecated = function (a, c, d, e) {
+var f = e ? 'are' : 'is', g = new Date(), h = new Date(c);
+return h.setMonth(h.getMonth() + 3), h > g ? (a in b || console.warn('Web Animations: ' + a + ' ' + f + ' deprecated and will stop working on ' + h.toDateString() + '. ' + d), b[a] = !0, !1) : !0;
+}, a.deprecated = function (b, c, d, e) {
+var f = e ? 'are' : 'is';
+if (a.isDeprecated(b, c, d, e))
+throw new Error(b + ' ' + f + ' no longer supported. ' + d);
+};
+}(c), function () {
+if (document.documentElement.animate) {
+var a = document.documentElement.animate([], 0), b = !0;
+if (a && (b = !1, 'play|currentTime|pause|reverse|playbackRate|cancel|finish|startTime|playState'.split('|').forEach(function (c) {
+void 0 === a[c] && (b = !0);
+})), !b)
+return;
+}
+!function (a, b) {
+function c(a) {
+for (var b = {}, c = 0; c < a.length; c++)
+for (var d in a[c])
+if ('offset' != d && 'easing' != d && 'composite' != d) {
+var e = {
+offset: a[c].offset,
+easing: a[c].easing,
+value: a[c][d]
+};
+b[d] = b[d] || [], b[d].push(e);
+}
+for (var f in b) {
+var g = b[f];
+if (0 != g[0].offset || 1 != g[g.length - 1].offset)
+throw {
+type: DOMException.NOT_SUPPORTED_ERR,
+name: 'NotSupportedError',
+message: 'Partial keyframes are not supported'
+};
+}
+return b;
+}
+function d(a) {
+var c = [];
+for (var d in a)
+for (var e = a[d], f = 0; f < e.length - 1; f++) {
+var g = e[f].offset, h = e[f + 1].offset, i = e[f].value, j = e[f + 1].value;
+g == h && (1 == h ? i = j : j = i), c.push({
+startTime: g,
+endTime: h,
+easing: e[f].easing,
+property: d,
+interpolation: b.propertyInterpolation(d, i, j)
+});
+}
+return c.sort(function (a, b) {
+return a.startTime - b.startTime;
+}), c;
+}
+b.convertEffectInput = function (e) {
+var f = a.normalizeKeyframes(e), g = c(f), h = d(g);
+return function (a, c) {
+if (null != c)
+h.filter(function (a) {
+return 0 >= c && 0 == a.startTime || c >= 1 && 1 == a.endTime || c >= a.startTime && c <= a.endTime;
+}).forEach(function (d) {
+var e = c - d.startTime, f = d.endTime - d.startTime, g = 0 == f ? 0 : d.easing(e / f);
+b.apply(a, d.property, d.interpolation(g));
+});
+else
+for (var d in g)
+'offset' != d && 'easing' != d && 'composite' != d && b.clear(a, d);
+};
+};
+}(c, d, f), function (a) {
+function b(a, b, c) {
+e[c] = e[c] || [], e[c].push([
+a,
+b
+]);
+}
+function c(a, c, d) {
+for (var e = 0; e < d.length; e++) {
+var f = d[e];
+b(a, c, f), /-/.test(f) && b(a, c, f.replace(/-(.)/g, function (a, b) {
+return b.toUpperCase();
+}));
+}
+}
+function d(b, c, d) {
+if ('initial' == c || 'initial' == d) {
+var g = b.replace(/-(.)/g, function (a, b) {
+return b.toUpperCase();
+});
+'initial' == c && (c = f[g]), 'initial' == d && (d = f[g]);
+}
+for (var h = c == d ? [] : e[b], i = 0; h && i < h.length; i++) {
+var j = h[i][0](c), k = h[i][0](d);
+if (void 0 !== j && void 0 !== k) {
+var l = h[i][1](j, k);
+if (l) {
+var m = a.Interpolation.apply(null, l);
+return function (a) {
+return 0 == a ? c : 1 == a ? d : m(a);
+};
+}
+}
+}
+return a.Interpolation(!1, !0, function (a) {
+return a ? d : c;
+});
+}
+var e = {};
+a.addPropertiesHandler = c;
+var f = {
+backgroundColor: 'transparent',
+backgroundPosition: '0% 0%',
+borderBottomColor: 'currentColor',
+borderBottomLeftRadius: '0px',
+borderBottomRightRadius: '0px',
+borderBottomWidth: '3px',
+borderLeftColor: 'currentColor',
+borderLeftWidth: '3px',
+borderRightColor: 'currentColor',
+borderRightWidth: '3px',
+borderSpacing: '2px',
+borderTopColor: 'currentColor',
+borderTopLeftRadius: '0px',
+borderTopRightRadius: '0px',
+borderTopWidth: '3px',
+bottom: 'auto',
+clip: 'rect(0px, 0px, 0px, 0px)',
+color: 'black',
+fontSize: '100%',
+fontWeight: '400',
+height: 'auto',
+left: 'auto',
+letterSpacing: 'normal',
+lineHeight: '120%',
+marginBottom: '0px',
+marginLeft: '0px',
+marginRight: '0px',
+marginTop: '0px',
+maxHeight: 'none',
+maxWidth: 'none',
+minHeight: '0px',
+minWidth: '0px',
+opacity: '1.0',
+outlineColor: 'invert',
+outlineOffset: '0px',
+outlineWidth: '3px',
+paddingBottom: '0px',
+paddingLeft: '0px',
+paddingRight: '0px',
+paddingTop: '0px',
+right: 'auto',
+textIndent: '0px',
+textShadow: '0px 0px 0px transparent',
+top: 'auto',
+transform: '',
+verticalAlign: '0px',
+visibility: 'visible',
+width: 'auto',
+wordSpacing: 'normal',
+zIndex: 'auto'
+};
+a.propertyInterpolation = d;
+}(d, f), function (a, b) {
+function c(b) {
+var c = a.calculateActiveDuration(b), d = function (d) {
+return a.calculateTimeFraction(c, d, b);
+};
+return d._totalDuration = b.delay + c + b.endDelay, d._isCurrent = function (d) {
+var e = a.calculatePhase(c, d, b);
+return e === PhaseActive || e === PhaseBefore;
+}, d;
+}
+b.KeyframeEffect = function (d, e, f) {
+var g, h = c(a.normalizeTimingInput(f)), i = b.convertEffectInput(e), j = function () {
+i(d, g);
+};
+return j._update = function (a) {
+return g = h(a), null !== g;
+}, j._clear = function () {
+i(d, null);
+}, j._hasSameTarget = function (a) {
+return d === a;
+}, j._isCurrent = h._isCurrent, j._totalDuration = h._totalDuration, j;
+}, b.NullEffect = function (a) {
+var b = function () {
+a && (a(), a = null);
+};
+return b._update = function () {
+return null;
+}, b._totalDuration = 0, b._isCurrent = function () {
+return !1;
+}, b._hasSameTarget = function () {
+return !1;
+}, b;
+};
+}(c, d, f), function (a) {
+a.apply = function (b, c, d) {
+b.style[a.propertyName(c)] = d;
+}, a.clear = function (b, c) {
+b.style[a.propertyName(c)] = '';
+};
+}(d, f), function (a) {
+window.Element.prototype.animate = function (b, c) {
+return a.timeline._play(a.KeyframeEffect(this, b, c));
+};
+}(d), function (a) {
+function b(a, c, d) {
+if ('number' == typeof a && 'number' == typeof c)
+return a * (1 - d) + c * d;
+if ('boolean' == typeof a && 'boolean' == typeof c)
+return 0.5 > d ? a : c;
+if (a.length == c.length) {
+for (var e = [], f = 0; f < a.length; f++)
+e.push(b(a[f], c[f], d));
+return e;
+}
+throw 'Mismatched interpolation arguments ' + a + ':' + c;
+}
+a.Interpolation = function (a, c, d) {
+return function (e) {
+return d(b(a, c, e));
+};
+};
+}(d, f), function (a, b) {
+a.sequenceNumber = 0;
+var c = function (a, b, c) {
+this.target = a, this.currentTime = b, this.timelineTime = c, this.type = 'finish', this.bubbles = !1, this.cancelable = !1, this.currentTarget = a, this.defaultPrevented = !1, this.eventPhase = Event.AT_TARGET, this.timeStamp = Date.now();
+};
+b.Animation = function (b) {
+this._sequenceNumber = a.sequenceNumber++, this._currentTime = 0, this._startTime = null, this._paused = !1, this._playbackRate = 1, this._inTimeline = !0, this._finishedFlag = !1, this.onfinish = null, this._finishHandlers = [], this._effect = b, this._inEffect = this._effect._update(0), this._idle = !0, this._currentTimePending = !1;
+}, b.Animation.prototype = {
+_ensureAlive: function () {
+this._inEffect = this._effect._update(this.playbackRate < 0 && 0 === this.currentTime ? -1 : this.currentTime), this._inTimeline || !this._inEffect && this._finishedFlag || (this._inTimeline = !0, b.timeline._animations.push(this));
+},
+_tickCurrentTime: function (a, b) {
+a != this._currentTime && (this._currentTime = a, this._isFinished && !b && (this._currentTime = this._playbackRate > 0 ? this._totalDuration : 0), this._ensureAlive());
+},
+get currentTime() {
+return this._idle || this._currentTimePending ? null : this._currentTime;
+},
+set currentTime(a) {
+a = +a, isNaN(a) || (b.restart(), this._paused || null == this._startTime || (this._startTime = this._timeline.currentTime - a / this._playbackRate), this._currentTimePending = !1, this._currentTime != a && (this._tickCurrentTime(a, !0), b.invalidateEffects()));
+},
+get startTime() {
+return this._startTime;
+},
+set startTime(a) {
+a = +a, isNaN(a) || this._paused || this._idle || (this._startTime = a, this._tickCurrentTime((this._timeline.currentTime - this._startTime) * this.playbackRate), b.invalidateEffects());
+},
+get playbackRate() {
+return this._playbackRate;
+},
+set playbackRate(a) {
+if (a != this._playbackRate) {
+var b = this.currentTime;
+this._playbackRate = a, this._startTime = null, 'paused' != this.playState && 'idle' != this.playState && this.play(), null != b && (this.currentTime = b);
+}
+},
+get _isFinished() {
+return !this._idle && (this._playbackRate > 0 && this._currentTime >= this._totalDuration || this._playbackRate < 0 && this._currentTime <= 0);
+},
+get _totalDuration() {
+return this._effect._totalDuration;
+},
+get playState() {
+return this._idle ? 'idle' : null == this._startTime && !this._paused && 0 != this.playbackRate || this._currentTimePending ? 'pending' : this._paused ? 'paused' : this._isFinished ? 'finished' : 'running';
+},
+play: function () {
+this._paused = !1, (this._isFinished || this._idle) && (this._currentTime = this._playbackRate > 0 ? 0 : this._totalDuration, this._startTime = null, b.invalidateEffects()), this._finishedFlag = !1, b.restart(), this._idle = !1, this._ensureAlive();
+},
+pause: function () {
+this._isFinished || this._paused || this._idle || (this._currentTimePending = !0), this._startTime = null, this._paused = !0;
+},
+finish: function () {
+this._idle || (this.currentTime = this._playbackRate > 0 ? this._totalDuration : 0, this._startTime = this._totalDuration - this.currentTime, this._currentTimePending = !1);
+},
+cancel: function () {
+this._inEffect && (this._inEffect = !1, this._idle = !0, this.currentTime = 0, this._startTime = null, this._effect._update(null), b.invalidateEffects(), b.restart());
+},
+reverse: function () {
+this.playbackRate *= -1, this.play();
+},
+addEventListener: function (a, b) {
+'function' == typeof b && 'finish' == a && this._finishHandlers.push(b);
+},
+removeEventListener: function (a, b) {
+if ('finish' == a) {
+var c = this._finishHandlers.indexOf(b);
+c >= 0 && this._finishHandlers.splice(c, 1);
+}
+},
+_fireEvents: function (a) {
+var b = this._isFinished;
+if ((b || this._idle) && !this._finishedFlag) {
+var d = new c(this, this._currentTime, a), e = this._finishHandlers.concat(this.onfinish ? [this.onfinish] : []);
+setTimeout(function () {
+e.forEach(function (a) {
+a.call(d.target, d);
+});
+}, 0);
+}
+this._finishedFlag = b;
+},
+_tick: function (a) {
+return this._idle || this._paused || (null == this._startTime ? this.startTime = a - this._currentTime / this.playbackRate : this._isFinished || this._tickCurrentTime((a - this._startTime) * this.playbackRate)), this._currentTimePending = !1, this._fireEvents(a), !this._idle && (this._inEffect || !this._finishedFlag);
+}
+};
+}(c, d, f), function (a, b) {
+function c(a) {
+var b = i;
+i = [], a < s.currentTime && (a = s.currentTime), g(a), b.forEach(function (b) {
+b[1](a);
+}), o && g(a), f(), l = void 0;
+}
+function d(a, b) {
+return a._sequenceNumber - b._sequenceNumber;
+}
+function e() {
+this._animations = [], this.currentTime = window.performance && performance.now ? performance.now() : 0;
+}
+function f() {
+p.forEach(function (a) {
+a();
+}), p.length = 0;
+}
+function g(a) {
+n = !1;
+var c = b.timeline;
+c.currentTime = a, c._animations.sort(d), m = !1;
+var e = c._animations;
+c._animations = [];
+var f = [], g = [];
+e = e.filter(function (b) {
+return b._inTimeline = b._tick(a), b._inEffect ? g.push(b._effect) : f.push(b._effect), b._isFinished || b._paused || b._idle || (m = !0), b._inTimeline;
+}), p.push.apply(p, f), p.push.apply(p, g), c._animations.push.apply(c._animations, e), o = !1, m && requestAnimationFrame(function () {
+});
+}
+var h = window.requestAnimationFrame, i = [], j = 0;
+window.requestAnimationFrame = function (a) {
+var b = j++;
+return 0 == i.length && h(c), i.push([
+b,
+a
+]), b;
+}, window.cancelAnimationFrame = function (a) {
+i.forEach(function (b) {
+b[0] == a && (b[1] = function () {
+});
+});
+}, e.prototype = {
+_play: function (c) {
+c._timing = a.normalizeTimingInput(c.timing);
+var d = new b.Animation(c);
+return d._idle = !1, d._timeline = this, this._animations.push(d), b.restart(), b.invalidateEffects(), d;
+}
+};
+var k, l = void 0, k = function () {
+return void 0 == l && (l = performance.now()), l;
+}, m = !1, n = !1;
+b.restart = function () {
+return m || (m = !0, requestAnimationFrame(function () {
+}), n = !0), n;
+};
+var o = !1;
+b.invalidateEffects = function () {
+o = !0;
+};
+var p = [], q = 1000 / 60, r = window.getComputedStyle;
+Object.defineProperty(window, 'getComputedStyle', {
+configurable: !0,
+enumerable: !0,
+value: function () {
+if (o) {
+var a = k();
+a - s.currentTime > 0 && (s.currentTime += q * (Math.floor((a - s.currentTime) / q) + 1)), g(s.currentTime);
+}
+return f(), r.apply(this, arguments);
+}
+});
+var s = new e();
+b.timeline = s;
+}(c, d, f), function (a) {
+function b(a, b) {
+var c = a.exec(b);
+return c ? (c = a.ignoreCase ? c[0].toLowerCase() : c[0], [
+c,
+b.substr(c.length)
+]) : void 0;
+}
+function c(a, b) {
+b = b.replace(/^\s*/, '');
+var c = a(b);
+return c ? [
+c[0],
+c[1].replace(/^\s*/, '')
+] : void 0;
+}
+function d(a, d, e) {
+a = c.bind(null, a);
+for (var f = [];;) {
+var g = a(e);
+if (!g)
+return [
+f,
+e
+];
+if (f.push(g[0]), e = g[1], g = b(d, e), !g || '' == g[1])
+return [
+f,
+e
+];
+e = g[1];
+}
+}
+function e(a, b) {
+for (var c = 0, d = 0; d < b.length && (!/\s|,/.test(b[d]) || 0 != c); d++)
+if ('(' == b[d])
+c++;
+else if (')' == b[d] && (c--, 0 == c && d++, 0 >= c))
+break;
+var e = a(b.substr(0, d));
+return void 0 == e ? void 0 : [
+e,
+b.substr(d)
+];
+}
+function f(a, b) {
+for (var c = a, d = b; c && d;)
+c > d ? c %= d : d %= c;
+return c = a * b / (c + d);
+}
+function g(a) {
+return function (b) {
+var c = a(b);
+return c && (c[0] = void 0), c;
+};
+}
+function h(a, b) {
+return function (c) {
+var d = a(c);
+return d ? d : [
+b,
+c
+];
+};
+}
+function i(b, c) {
+for (var d = [], e = 0; e < b.length; e++) {
+var f = a.consumeTrimmed(b[e], c);
+if (!f || '' == f[0])
+return;
+void 0 !== f[0] && d.push(f[0]), c = f[1];
+}
+return '' == c ? d : void 0;
+}
+function j(a, b, c, d, e) {
+for (var g = [], h = [], i = [], j = f(d.length, e.length), k = 0; j > k; k++) {
+var l = b(d[k % d.length], e[k % e.length]);
+if (!l)
+return;
+g.push(l[0]), h.push(l[1]), i.push(l[2]);
+}
+return [
+g,
+h,
+function (b) {
+var d = b.map(function (a, b) {
+return i[b](a);
+}).join(c);
+return a ? a(d) : d;
+}
+];
+}
+function k(a, b, c) {
+for (var d = [], e = [], f = [], g = 0, h = 0; h < c.length; h++)
+if ('function' == typeof c[h]) {
+var i = c[h](a[g], b[g++]);
+d.push(i[0]), e.push(i[1]), f.push(i[2]);
+} else
+!function (a) {
+d.push(!1), e.push(!1), f.push(function () {
+return c[a];
+});
+}(h);
+return [
+d,
+e,
+function (a) {
+for (var b = '', c = 0; c < a.length; c++)
+b += f[c](a[c]);
+return b;
+}
+];
+}
+a.consumeToken = b, a.consumeTrimmed = c, a.consumeRepeated = d, a.consumeParenthesised = e, a.ignore = g, a.optional = h, a.consumeList = i, a.mergeNestedRepeated = j.bind(null, null), a.mergeWrappedNestedRepeated = j, a.mergeList = k;
+}(d), function (a) {
+function b(b) {
+function c(b) {
+var c = a.consumeToken(/^inset/i, b);
+if (c)
+return d.inset = !0, c;
+var c = a.consumeLengthOrPercent(b);
+if (c)
+return d.lengths.push(c[0]), c;
+var c = a.consumeColor(b);
+return c ? (d.color = c[0], c) : void 0;
+}
+var d = {
+inset: !1,
+lengths: [],
+color: null
+}, e = a.consumeRepeated(c, /^/, b);
+return e && e[0].length ? [
+d,
+e[1]
+] : void 0;
+}
+function c(c) {
+var d = a.consumeRepeated(b, /^,/, c);
+return d && '' == d[1] ? d[0] : void 0;
+}
+function d(b, c) {
+for (; b.lengths.length < Math.max(b.lengths.length, c.lengths.length);)
+b.lengths.push({ px: 0 });
+for (; c.lengths.length < Math.max(b.lengths.length, c.lengths.length);)
+c.lengths.push({ px: 0 });
+if (b.inset == c.inset && !!b.color == !!c.color) {
+for (var d, e = [], f = [
+[],
+0
+], g = [
+[],
+0
+], h = 0; h < b.lengths.length; h++) {
+var i = a.mergeDimensions(b.lengths[h], c.lengths[h], 2 == h);
+f[0].push(i[0]), g[0].push(i[1]), e.push(i[2]);
+}
+if (b.color && c.color) {
+var j = a.mergeColors(b.color, c.color);
+f[1] = j[0], g[1] = j[1], d = j[2];
+}
+return [
+f,
+g,
+function (a) {
+for (var c = b.inset ? 'inset ' : ' ', f = 0; f < e.length; f++)
+c += e[f](a[0][f]) + ' ';
+return d && (c += d(a[1])), c;
+}
+];
+}
+}
+function e(b, c, d, e) {
+function f(a) {
+return {
+inset: a,
+color: [
+0,
+0,
+0,
+0
+],
+lengths: [
+{ px: 0 },
+{ px: 0 },
+{ px: 0 },
+{ px: 0 }
+]
+};
+}
+for (var g = [], h = [], i = 0; i < d.length || i < e.length; i++) {
+var j = d[i] || f(e[i].inset), k = e[i] || f(d[i].inset);
+g.push(j), h.push(k);
+}
+return a.mergeNestedRepeated(b, c, g, h);
+}
+var f = e.bind(null, d, ', ');
+a.addPropertiesHandler(c, f, [
+'box-shadow',
+'text-shadow'
+]);
+}(d), function (a) {
+function b(a) {
+return a.toFixed(3).replace('.000', '');
+}
+function c(a, b, c) {
+return Math.min(b, Math.max(a, c));
+}
+function d(a) {
+return /^\s*[-+]?(\d*\.)?\d+\s*$/.test(a) ? Number(a) : void 0;
+}
+function e(a, c) {
+return [
+a,
+c,
+b
+];
+}
+function f(a, b) {
+return 0 != a ? h(0, 1 / 0)(a, b) : void 0;
+}
+function g(a, b) {
+return [
+a,
+b,
+function (a) {
+return Math.round(c(1, 1 / 0, a));
+}
+];
+}
+function h(a, d) {
+return function (e, f) {
+return [
+e,
+f,
+function (e) {
+return b(c(a, d, e));
+}
+];
+};
+}
+function i(a, b) {
+return [
+a,
+b,
+Math.round
+];
+}
+a.clamp = c, a.addPropertiesHandler(d, h(0, 1 / 0), [
+'border-image-width',
+'line-height'
+]), a.addPropertiesHandler(d, h(0, 1), [
+'opacity',
+'shape-image-threshold'
+]), a.addPropertiesHandler(d, f, [
+'flex-grow',
+'flex-shrink'
+]), a.addPropertiesHandler(d, g, [
+'orphans',
+'widows'
+]), a.addPropertiesHandler(d, i, ['z-index']), a.parseNumber = d, a.mergeNumbers = e, a.numberToString = b;
+}(d, f), function (a) {
+function b(a, b) {
+return 'visible' == a || 'visible' == b ? [
+0,
+1,
+function (c) {
+return 0 >= c ? a : c >= 1 ? b : 'visible';
+}
+] : void 0;
+}
+a.addPropertiesHandler(String, b, ['visibility']);
+}(d), function (a) {
+function b(a) {
+a = a.trim(), e.fillStyle = '#000', e.fillStyle = a;
+var b = e.fillStyle;
+if (e.fillStyle = '#fff', e.fillStyle = a, b == e.fillStyle) {
+e.fillRect(0, 0, 1, 1);
+var c = e.getImageData(0, 0, 1, 1).data;
+e.clearRect(0, 0, 1, 1);
+var d = c[3] / 255;
+return [
+c[0] * d,
+c[1] * d,
+c[2] * d,
+d
+];
+}
+}
+function c(b, c) {
+return [
+b,
+c,
+function (b) {
+function c(a) {
+return Math.max(0, Math.min(255, a));
+}
+if (b[3])
+for (var d = 0; 3 > d; d++)
+b[d] = Math.round(c(b[d] / b[3]));
+return b[3] = a.numberToString(a.clamp(0, 1, b[3])), 'rgba(' + b.join(',') + ')';
+}
+];
+}
+var d = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+d.width = d.height = 1;
+var e = d.getContext('2d');
+a.addPropertiesHandler(b, c, [
+'background-color',
+'border-bottom-color',
+'border-left-color',
+'border-right-color',
+'border-top-color',
+'color',
+'outline-color',
+'text-decoration-color'
+]), a.consumeColor = a.consumeParenthesised.bind(null, b), a.mergeColors = c;
+}(d, f), function (a, b) {
+function c(a, b) {
+if (b = b.trim().toLowerCase(), '0' == b && 'px'.search(a) >= 0)
+return { px: 0 };
+if (/^[^(]*$|^calc/.test(b)) {
+b = b.replace(/calc\(/g, '(');
+var c = {};
+b = b.replace(a, function (a) {
+return c[a] = null, 'U' + a;
+});
+for (var d = 'U(' + a.source + ')', e = b.replace(/[-+]?(\d*\.)?\d+/g, 'N').replace(new RegExp('N' + d, 'g'), 'D').replace(/\s[+-]\s/g, 'O').replace(/\s/g, ''), f = [
+/N\*(D)/g,
+/(N|D)[*/]N/g,
+/(N|D)O\1/g,
+/\((N|D)\)/g
+], g = 0; g < f.length;)
+f[g].test(e) ? (e = e.replace(f[g], '$1'), g = 0) : g++;
+if ('D' == e) {
+for (var h in c) {
+var i = eval(b.replace(new RegExp('U' + h, 'g'), '').replace(new RegExp(d, 'g'), '*0'));
+if (!isFinite(i))
+return;
+c[h] = i;
+}
+return c;
+}
+}
+}
+function d(a, b) {
+return e(a, b, !0);
+}
+function e(b, c, d) {
+var e, f = [];
+for (e in b)
+f.push(e);
+for (e in c)
+f.indexOf(e) < 0 && f.push(e);
+return b = f.map(function (a) {
+return b[a] || 0;
+}), c = f.map(function (a) {
+return c[a] || 0;
+}), [
+b,
+c,
+function (b) {
+var c = b.map(function (c, e) {
+return 1 == b.length && d && (c = Math.max(c, 0)), a.numberToString(c) + f[e];
+}).join(' + ');
+return b.length > 1 ? 'calc(' + c + ')' : c;
+}
+];
+}
+var f = 'px|em|ex|ch|rem|vw|vh|vmin|vmax|cm|mm|in|pt|pc', g = c.bind(null, new RegExp(f, 'g')), h = c.bind(null, new RegExp(f + '|%', 'g')), i = c.bind(null, /deg|rad|grad|turn/g);
+a.parseLength = g, a.parseLengthOrPercent = h, a.consumeLengthOrPercent = a.consumeParenthesised.bind(null, h), a.parseAngle = i, a.mergeDimensions = e;
+var j = a.consumeParenthesised.bind(null, g), k = a.consumeRepeated.bind(void 0, j, /^/), l = a.consumeRepeated.bind(void 0, k, /^,/);
+a.consumeSizePairList = l;
+var m = function (a) {
+var b = l(a);
+return b && '' == b[1] ? b[0] : void 0;
+}, n = a.mergeNestedRepeated.bind(void 0, d, ' '), o = a.mergeNestedRepeated.bind(void 0, n, ',');
+a.mergeNonNegativeSizePair = n, a.addPropertiesHandler(m, o, ['background-size']), a.addPropertiesHandler(h, d, [
+'border-bottom-width',
+'border-image-width',
+'border-left-width',
+'border-right-width',
+'border-top-width',
+'flex-basis',
+'font-size',
+'height',
+'line-height',
+'max-height',
+'max-width',
+'outline-width',
+'width'
+]), a.addPropertiesHandler(h, e, [
+'border-bottom-left-radius',
+'border-bottom-right-radius',
+'border-top-left-radius',
+'border-top-right-radius',
+'bottom',
+'left',
+'letter-spacing',
+'margin-bottom',
+'margin-left',
+'margin-right',
+'margin-top',
+'min-height',
+'min-width',
+'outline-offset',
+'padding-bottom',
+'padding-left',
+'padding-right',
+'padding-top',
+'perspective',
+'right',
+'shape-margin',
+'text-indent',
+'top',
+'vertical-align',
+'word-spacing'
+]);
+}(d, f), function (a) {
+function b(b) {
+return a.consumeLengthOrPercent(b) || a.consumeToken(/^auto/, b);
+}
+function c(c) {
+var d = a.consumeList([
+a.ignore(a.consumeToken.bind(null, /^rect/)),
+a.ignore(a.consumeToken.bind(null, /^\(/)),
+a.consumeRepeated.bind(null, b, /^,/),
+a.ignore(a.consumeToken.bind(null, /^\)/))
+], c);
+return d && 4 == d[0].length ? d[0] : void 0;
+}
+function d(b, c) {
+return 'auto' == b || 'auto' == c ? [
+!0,
+!1,
+function (d) {
+var e = d ? b : c;
+if ('auto' == e)
+return 'auto';
+var f = a.mergeDimensions(e, e);
+return f[2](f[0]);
+}
+] : a.mergeDimensions(b, c);
+}
+function e(a) {
+return 'rect(' + a + ')';
+}
+var f = a.mergeWrappedNestedRepeated.bind(null, e, d, ', ');
+a.parseBox = c, a.mergeBoxes = f, a.addPropertiesHandler(c, f, ['clip']);
+}(d, f), function (a) {
+function b(a) {
+return function (b) {
+var c = 0;
+return a.map(function (a) {
+return a === j ? b[c++] : a;
+});
+};
+}
+function c(a) {
+return a;
+}
+function d(b) {
+if (b = b.toLowerCase().trim(), 'none' == b)
+return [];
+for (var c, d = /\s*(\w+)\(([^)]*)\)/g, e = [], f = 0; c = d.exec(b);) {
+if (c.index != f)
+return;
+f = c.index + c[0].length;
+var g = c[1], h = m[g];
+if (!h)
+return;
+var i = c[2].split(','), j = h[0];
+if (j.length < i.length)
+return;
+for (var n = [], o = 0; o < j.length; o++) {
+var p, q = i[o], r = j[o];
+if (p = q ? {
+A: function (b) {
+return '0' == b.trim() ? l : a.parseAngle(b);
+},
+N: a.parseNumber,
+T: a.parseLengthOrPercent,
+L: a.parseLength
+}[r.toUpperCase()](q) : {
+a: l,
+n: n[0],
+t: k
+}[r], void 0 === p)
+return;
+n.push(p);
+}
+if (e.push({
+t: g,
+d: n
+}), d.lastIndex == b.length)
+return e;
+}
+}
+function e(a) {
+return a.toFixed(6).replace('.000000', '');
+}
+function f(b, c) {
+if (b.decompositionPair !== c) {
+b.decompositionPair = c;
+var d = a.makeMatrixDecomposition(b);
+}
+if (c.decompositionPair !== b) {
+c.decompositionPair = b;
+var f = a.makeMatrixDecomposition(c);
+}
+return null == d[0] || null == f[0] ? [
+[!1],
+[!0],
+function (a) {
+return a ? c[0].d : b[0].d;
+}
+] : (d[0].push(0), f[0].push(1), [
+d,
+f,
+function (b) {
+var c = a.quat(d[0][3], f[0][3], b[5]), g = a.composeMatrix(b[0], b[1], b[2], c, b[4]), h = g.map(e).join(',');
+return h;
+}
+]);
+}
+function g(a) {
+return a.replace(/[xy]/, '');
+}
+function h(a) {
+return a.replace(/(x|y|z|3d)?$/, '3d');
+}
+function i(b, c) {
+var d = a.makeMatrixDecomposition && !0, e = !1;
+if (!b.length || !c.length) {
+b.length || (e = !0, b = c, c = []);
+for (var i = 0; i < b.length; i++) {
+var j = b[i].t, k = b[i].d, l = 'scale' == j.substr(0, 5) ? 1 : 0;
+c.push({
+t: j,
+d: k.map(function (a) {
+if ('number' == typeof a)
+return l;
+var b = {};
+for (var c in a)
+b[c] = l;
+return b;
+})
+});
+}
+}
+var n = function (a, b) {
+return 'perspective' == a && 'perspective' == b || ('matrix' == a || 'matrix3d' == a) && ('matrix' == b || 'matrix3d' == b);
+}, o = [], p = [], q = [];
+if (b.length != c.length) {
+if (!d)
+return;
+var r = f(b, c);
+o = [r[0]], p = [r[1]], q = [[
+'matrix',
+[r[2]]
+]];
+} else
+for (var i = 0; i < b.length; i++) {
+var j, s = b[i].t, t = c[i].t, u = b[i].d, v = c[i].d, w = m[s], x = m[t];
+if (n(s, t)) {
+if (!d)
+return;
+var r = f([b[i]], [c[i]]);
+o.push(r[0]), p.push(r[1]), q.push([
+'matrix',
+[r[2]]
+]);
+} else {
+if (s == t)
+j = s;
+else if (w[2] && x[2] && g(s) == g(t))
+j = g(s), u = w[2](u), v = x[2](v);
+else {
+if (!w[1] || !x[1] || h(s) != h(t)) {
+if (!d)
+return;
+var r = f(b, c);
+o = [r[0]], p = [r[1]], q = [[
+'matrix',
+[r[2]]
+]];
+break;
+}
+j = h(s), u = w[1](u), v = x[1](v);
+}
+for (var y = [], z = [], A = [], B = 0; B < u.length; B++) {
+var C = 'number' == typeof u[B] ? a.mergeNumbers : a.mergeDimensions, r = C(u[B], v[B]);
+y[B] = r[0], z[B] = r[1], A.push(r[2]);
+}
+o.push(y), p.push(z), q.push([
+j,
+A
+]);
+}
+}
+if (e) {
+var D = o;
+o = p, p = D;
+}
+return [
+o,
+p,
+function (a) {
+return a.map(function (a, b) {
+var c = a.map(function (a, c) {
+return q[b][1][c](a);
+}).join(',');
+return 'matrix' == q[b][0] && 16 == c.split(',').length && (q[b][0] = 'matrix3d'), q[b][0] + '(' + c + ')';
+}).join(' ');
+}
+];
+}
+var j = null, k = { px: 0 }, l = { deg: 0 }, m = {
+matrix: [
+'NNNNNN',
+[
+j,
+j,
+0,
+0,
+j,
+j,
+0,
+0,
+0,
+0,
+1,
+0,
+j,
+j,
+0,
+1
+],
+c
+],
+matrix3d: [
+'NNNNNNNNNNNNNNNN',
+c
+],
+rotate: ['A'],
+rotatex: ['A'],
+rotatey: ['A'],
+rotatez: ['A'],
+rotate3d: ['NNNA'],
+perspective: ['L'],
+scale: [
+'Nn',
+b([
+j,
+j,
+1
+]),
+c
+],
+scalex: [
+'N',
+b([
+j,
+1,
+1
+]),
+b([
+j,
+1
+])
+],
+scaley: [
+'N',
+b([
+1,
+j,
+1
+]),
+b([
+1,
+j
+])
+],
+scalez: [
+'N',
+b([
+1,
+1,
+j
+])
+],
+scale3d: [
+'NNN',
+c
+],
+skew: [
+'Aa',
+null,
+c
+],
+skewx: [
+'A',
+null,
+b([
+j,
+l
+])
+],
+skewy: [
+'A',
+null,
+b([
+l,
+j
+])
+],
+translate: [
+'Tt',
+b([
+j,
+j,
+k
+]),
+c
+],
+translatex: [
+'T',
+b([
+j,
+k,
+k
+]),
+b([
+j,
+k
+])
+],
+translatey: [
+'T',
+b([
+k,
+j,
+k
+]),
+b([
+k,
+j
+])
+],
+translatez: [
+'L',
+b([
+k,
+k,
+j
+])
+],
+translate3d: [
+'TTL',
+c
+]
+};
+a.addPropertiesHandler(d, i, ['transform']);
+}(d, f), function (a) {
+function b(a, b) {
+b.concat([a]).forEach(function (b) {
+b in document.documentElement.style && (c[a] = b);
+});
+}
+var c = {};
+b('transform', [
+'webkitTransform',
+'msTransform'
+]), b('transformOrigin', ['webkitTransformOrigin']), b('perspective', ['webkitPerspective']), b('perspectiveOrigin', ['webkitPerspectiveOrigin']), a.propertyName = function (a) {
+return c[a] || a;
+};
+}(d, f);
+}(), !function (a, b) {
+function c(a) {
+var b = window.document.timeline;
+b.currentTime = a, b._discardAnimations(), 0 == b._animations.length ? e = !1 : requestAnimationFrame(c);
+}
+var d = window.requestAnimationFrame;
+window.requestAnimationFrame = function (a) {
+return d(function (b) {
+window.document.timeline._updateAnimationsPromises(), a(b), window.document.timeline._updateAnimationsPromises();
+});
+}, b.AnimationTimeline = function () {
+this._animations = [], this.currentTime = void 0;
+}, b.AnimationTimeline.prototype = {
+getAnimations: function () {
+return this._discardAnimations(), this._animations.slice();
+},
+_updateAnimationsPromises: function () {
+b.animationsWithPromises = b.animationsWithPromises.filter(function (a) {
+return a._updatePromises();
+});
+},
+_discardAnimations: function () {
+this._updateAnimationsPromises(), this._animations = this._animations.filter(function (a) {
+return 'finished' != a.playState && 'idle' != a.playState;
+});
+},
+_play: function (a) {
+var c = new b.Animation(a, this);
+return this._animations.push(c), b.restartWebAnimationsNextTick(), c._updatePromises(), c._animation.play(), c._updatePromises(), c;
+},
+play: function (a) {
+return a && a.remove(), this._play(a);
+}
+};
+var e = !1;
+b.restartWebAnimationsNextTick = function () {
+e || (e = !0, requestAnimationFrame(c));
+};
+var f = new b.AnimationTimeline();
+b.timeline = f;
+try {
+Object.defineProperty(window.document, 'timeline', {
+configurable: !0,
+get: function () {
+return f;
+}
+});
+} catch (g) {
+}
+try {
+window.document.timeline = f;
+} catch (g) {
+}
+}(c, e, f), function (a, b) {
+b.animationsWithPromises = [], b.Animation = function (b, c) {
+if (this.effect = b, b && (b._animation = this), !c)
+throw new Error('Animation with null timeline is not supported');
+this._timeline = c, this._sequenceNumber = a.sequenceNumber++, this._holdTime = 0, this._paused = !1, this._isGroup = !1, this._animation = null, this._childAnimations = [], this._callback = null, this._oldPlayState = 'idle', this._rebuildUnderlyingAnimation(), this._animation.cancel(), this._updatePromises();
+}, b.Animation.prototype = {
+_updatePromises: function () {
+var a = this._oldPlayState, b = this.playState;
+return this._readyPromise && b !== a && ('idle' == b ? (this._rejectReadyPromise(), this._readyPromise = void 0) : 'pending' == a ? this._resolveReadyPromise() : 'pending' == b && (this._readyPromise = void 0)), this._finishedPromise && b !== a && ('idle' == b ? (this._rejectFinishedPromise(), this._finishedPromise = void 0) : 'finished' == b ? this._resolveFinishedPromise() : 'finished' == a && (this._finishedPromise = void 0)), this._oldPlayState = this.playState, this._readyPromise || this._finishedPromise;
+},
+_rebuildUnderlyingAnimation: function () {
+this._updatePromises();
+var a, c, d, e, f = this._animation ? !0 : !1;
+f && (a = this.playbackRate, c = this._paused, d = this.startTime, e = this.currentTime, this._animation.cancel(), this._animation._wrapper = null, this._animation = null), (!this.effect || this.effect instanceof window.KeyframeEffect) && (this._animation = b.newUnderlyingAnimationForKeyframeEffect(this.effect), b.bindAnimationForKeyframeEffect(this)), (this.effect instanceof window.SequenceEffect || this.effect instanceof window.GroupEffect) && (this._animation = b.newUnderlyingAnimationForGroup(this.effect), b.bindAnimationForGroup(this)), this.effect && this.effect._onsample && b.bindAnimationForCustomEffect(this), f && (1 != a && (this.playbackRate = a), null !== d ? this.startTime = d : null !== e ? this.currentTime = e : null !== this._holdTime && (this.currentTime = this._holdTime), c && this.pause()), this._updatePromises();
+},
+_updateChildren: function () {
+if (this.effect && 'idle' != this.playState) {
+var a = this.effect._timing.delay;
+this._childAnimations.forEach(function (c) {
+this._arrangeChildren(c, a), this.effect instanceof window.SequenceEffect && (a += b.groupChildDuration(c.effect));
+}.bind(this));
+}
+},
+_setExternalAnimation: function (a) {
+if (this.effect && this._isGroup)
+for (var b = 0; b < this.effect.children.length; b++)
+this.effect.children[b]._animation = a, this._childAnimations[b]._setExternalAnimation(a);
+},
+_constructChildAnimations: function () {
+if (this.effect && this._isGroup) {
+var a = this.effect._timing.delay;
+this._removeChildAnimations(), this.effect.children.forEach(function (c) {
+var d = window.document.timeline._play(c);
+this._childAnimations.push(d), d.playbackRate = this.playbackRate, this._paused && d.pause(), c._animation = this.effect._animation, this._arrangeChildren(d, a), this.effect instanceof window.SequenceEffect && (a += b.groupChildDuration(c));
+}.bind(this));
+}
+},
+_arrangeChildren: function (a, b) {
+null === this.startTime ? a.currentTime = this.currentTime - b / this.playbackRate : a.startTime !== this.startTime + b / this.playbackRate && (a.startTime = this.startTime + b / this.playbackRate);
+},
+get timeline() {
+return this._timeline;
+},
+get playState() {
+return this._animation ? this._animation.playState : 'idle';
+},
+get finished() {
+return window.Promise ? (this._finishedPromise || (-1 == b.animationsWithPromises.indexOf(this) && b.animationsWithPromises.push(this), this._finishedPromise = new Promise(function (a, b) {
+this._resolveFinishedPromise = function () {
+a(this);
+}, this._rejectFinishedPromise = function () {
+b({
+type: DOMException.ABORT_ERR,
+name: 'AbortError'
+});
+};
+}.bind(this)), 'finished' == this.playState && this._resolveFinishedPromise()), this._finishedPromise) : (console.warn('Animation Promises require JavaScript Promise constructor'), null);
+},
+get ready() {
+return window.Promise ? (this._readyPromise || (-1 == b.animationsWithPromises.indexOf(this) && b.animationsWithPromises.push(this), this._readyPromise = new Promise(function (a, b) {
+this._resolveReadyPromise = function () {
+a(this);
+}, this._rejectReadyPromise = function () {
+b({
+type: DOMException.ABORT_ERR,
+name: 'AbortError'
+});
+};
+}.bind(this)), 'pending' !== this.playState && this._resolveReadyPromise()), this._readyPromise) : (console.warn('Animation Promises require JavaScript Promise constructor'), null);
+},
+get onfinish() {
+return this._onfinish;
+},
+set onfinish(a) {
+'function' == typeof a ? (this._onfinish = a, this._animation.onfinish = function (b) {
+b.target = this, a.call(this, b);
+}.bind(this)) : (this._animation.onfinish = a, this.onfinish = this._animation.onfinish);
+},
+get currentTime() {
+this._updatePromises();
+var a = this._animation.currentTime;
+return this._updatePromises(), a;
+},
+set currentTime(a) {
+this._updatePromises(), this._animation.currentTime = isFinite(a) ? a : Math.sign(a) * Number.MAX_VALUE, this._register(), this._forEachChild(function (b, c) {
+b.currentTime = a - c;
+}), this._updatePromises();
+},
+get startTime() {
+return this._animation.startTime;
+},
+set startTime(a) {
+this._updatePromises(), this._animation.startTime = isFinite(a) ? a : Math.sign(a) * Number.MAX_VALUE, this._register(), this._forEachChild(function (b, c) {
+b.startTime = a + c;
+}), this._updatePromises();
+},
+get playbackRate() {
+return this._animation.playbackRate;
+},
+set playbackRate(a) {
+this._updatePromises();
+var b = this.currentTime;
+this._animation.playbackRate = a, this._forEachChild(function (b) {
+b.playbackRate = a;
+}), 'paused' != this.playState && 'idle' != this.playState && this.play(), null !== b && (this.currentTime = b), this._updatePromises();
+},
+play: function () {
+this._updatePromises(), this._paused = !1, this._animation.play(), -1 == this._timeline._animations.indexOf(this) && this._timeline._animations.push(this), this._register(), b.awaitStartTime(this), this._forEachChild(function (a) {
+var b = a.currentTime;
+a.play(), a.currentTime = b;
+}), this._updatePromises();
+},
+pause: function () {
+this._updatePromises(), this.currentTime && (this._holdTime = this.currentTime), this._animation.pause(), this._register(), this._forEachChild(function (a) {
+a.pause();
+}), this._paused = !0, this._updatePromises();
+},
+finish: function () {
+this._updatePromises(), this._animation.finish(), this._register(), this._updatePromises();
+},
+cancel: function () {
+this._updatePromises(), this._animation.cancel(), this._register(), this._removeChildAnimations(), this._updatePromises();
+},
+reverse: function () {
+this._updatePromises();
+var a = this.currentTime;
+this._animation.reverse(), this._forEachChild(function (a) {
+a.reverse();
+}), null !== a && (this.currentTime = a), this._updatePromises();
+},
+addEventListener: function (a, b) {
+var c = b;
+'function' == typeof b && (c = function (a) {
+a.target = this, b.call(this, a);
+}.bind(this), b._wrapper = c), this._animation.addEventListener(a, c);
+},
+removeEventListener: function (a, b) {
+this._animation.removeEventListener(a, b && b._wrapper || b);
+},
+_removeChildAnimations: function () {
+for (; this._childAnimations.length;)
+this._childAnimations.pop().cancel();
+},
+_forEachChild: function (b) {
+var c = 0;
+if (this.effect.children && this._childAnimations.length < this.effect.children.length && this._constructChildAnimations(), this._childAnimations.forEach(function (a) {
+b.call(this, a, c), this.effect instanceof window.SequenceEffect && (c += a.effect.activeDuration);
+}.bind(this)), 'pending' != this.playState) {
+var d = this.effect._timing, e = this.currentTime;
+null !== e && (e = a.calculateTimeFraction(a.calculateActiveDuration(d), e, d)), (null == e || isNaN(e)) && this._removeChildAnimations();
+}
+}
+}, window.Animation = b.Animation;
+}(c, e, f), function (a, b) {
+function c(b) {
+this._frames = a.normalizeKeyframes(b);
+}
+function d() {
+for (var a = !1; h.length;) {
+var b = h.shift();
+b._updateChildren(), a = !0;
+}
+return a;
+}
+var e = function (a) {
+if (a._animation = void 0, a instanceof window.SequenceEffect || a instanceof window.GroupEffect)
+for (var b = 0; b < a.children.length; b++)
+e(a.children[b]);
+};
+b.removeMulti = function (a) {
+for (var b = [], c = 0; c < a.length; c++) {
+var d = a[c];
+d._parent ? (-1 == b.indexOf(d._parent) && b.push(d._parent), d._parent.children.splice(d._parent.children.indexOf(d), 1), d._parent = null, e(d)) : d._animation && d._animation.effect == d && (d._animation.cancel(), d._animation.effect = new KeyframeEffect(null, []), d._animation._callback && (d._animation._callback._animation = null), d._animation._rebuildUnderlyingAnimation(), e(d));
+}
+for (c = 0; c < b.length; c++)
+b[c]._rebuild();
+}, b.KeyframeEffect = function (b, d, e) {
+return this.target = b, this._parent = null, e = a.numericTimingToObject(e), this._timingInput = a.cloneTimingInput(e), this._timing = a.normalizeTimingInput(e), this.timing = a.makeTiming(e, !1, this), this.timing._effect = this, 'function' == typeof d ? (a.deprecated('Custom KeyframeEffect', '2015-06-22', 'Use KeyframeEffect.onsample instead.'), this._normalizedKeyframes = d) : this._normalizedKeyframes = new c(d), this._keyframes = d, this.activeDuration = a.calculateActiveDuration(this._timing), this;
+}, b.KeyframeEffect.prototype = {
+getFrames: function () {
+return 'function' == typeof this._normalizedKeyframes ? this._normalizedKeyframes : this._normalizedKeyframes._frames;
+},
+set onsample(a) {
+if ('function' == typeof this.getFrames())
+throw new Error('Setting onsample on custom effect KeyframeEffect is not supported.');
+this._onsample = a, this._animation && this._animation._rebuildUnderlyingAnimation();
+},
+get parent() {
+return this._parent;
+},
+clone: function () {
+if ('function' == typeof this.getFrames())
+throw new Error('Cloning custom effects is not supported.');
+var b = new KeyframeEffect(this.target, [], a.cloneTimingInput(this._timingInput));
+return b._normalizedKeyframes = this._normalizedKeyframes, b._keyframes = this._keyframes, b;
+},
+remove: function () {
+b.removeMulti([this]);
+}
+};
+var f = Element.prototype.animate;
+Element.prototype.animate = function (a, c) {
+return b.timeline._play(new b.KeyframeEffect(this, a, c));
+};
+var g = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+b.newUnderlyingAnimationForKeyframeEffect = function (a) {
+if (a) {
+var b = a.target || g, c = a._keyframes;
+'function' == typeof c && (c = []);
+var d = a._timingInput;
+} else
+var b = g, c = [], d = 0;
+return f.apply(b, [
+c,
+d
+]);
+}, b.bindAnimationForKeyframeEffect = function (a) {
+a.effect && 'function' == typeof a.effect._normalizedKeyframes && b.bindAnimationForCustomEffect(a);
+};
+var h = [];
+b.awaitStartTime = function (a) {
+null === a.startTime && a._isGroup && (0 == h.length && requestAnimationFrame(d), h.push(a));
+};
+var i = window.getComputedStyle;
+Object.defineProperty(window, 'getComputedStyle', {
+configurable: !0,
+enumerable: !0,
+value: function () {
+window.document.timeline._updateAnimationsPromises();
+var a = i.apply(this, arguments);
+return d() && (a = i.apply(this, arguments)), window.document.timeline._updateAnimationsPromises(), a;
+}
+}), window.KeyframeEffect = b.KeyframeEffect, window.Element.prototype.getAnimations = function () {
+return document.timeline.getAnimations().filter(function (a) {
+return null !== a.effect && a.effect.target == this;
+}.bind(this));
+};
+}(c, e, f), function (a, b) {
+function c(a) {
+a._registered || (a._registered = !0, f.push(a), g || (g = !0, requestAnimationFrame(d)));
+}
+function d() {
+var a = f;
+f = [], a.sort(function (a, b) {
+return a._sequenceNumber - b._sequenceNumber;
+}), a = a.filter(function (a) {
+a();
+var b = a._animation ? a._animation.playState : 'idle';
+return 'running' != b && 'pending' != b && (a._registered = !1), a._registered;
+}), f.push.apply(f, a), f.length ? (g = !0, requestAnimationFrame(d)) : g = !1;
+}
+var e = (document.createElementNS('http://www.w3.org/1999/xhtml', 'div'), 0);
+b.bindAnimationForCustomEffect = function (b) {
+var d, f = b.effect.target, g = 'function' == typeof b.effect.getFrames();
+d = g ? b.effect.getFrames() : b.effect._onsample;
+var h = b.effect.timing, i = null;
+h = a.normalizeTimingInput(h);
+var j = function () {
+var c = j._animation ? j._animation.currentTime : null;
+null !== c && (c = a.calculateTimeFraction(a.calculateActiveDuration(h), c, h), isNaN(c) && (c = null)), c !== i && (g ? d(c, f, b.effect) : d(c, b.effect, b.effect._animation)), i = c;
+};
+j._animation = b, j._registered = !1, j._sequenceNumber = e++, b._callback = j, c(j);
+};
+var f = [], g = !1;
+b.Animation.prototype._register = function () {
+this._callback && c(this._callback);
+};
+}(c, e, f), function (a, b) {
+function c(a) {
+return a._timing.delay + a.activeDuration + a._timing.endDelay;
+}
+function d(b, c) {
+this._parent = null, this.children = b || [], this._reparent(this.children), c = a.numericTimingToObject(c), this._timingInput = a.cloneTimingInput(c), this._timing = a.normalizeTimingInput(c, !0), this.timing = a.makeTiming(c, !0, this), this.timing._effect = this, 'auto' === this._timing.duration && (this._timing.duration = this.activeDuration);
+}
+window.SequenceEffect = function () {
+d.apply(this, arguments);
+}, window.GroupEffect = function () {
+d.apply(this, arguments);
+}, d.prototype = {
+_isAncestor: function (a) {
+for (var b = this; null !== b;) {
+if (b == a)
+return !0;
+b = b._parent;
+}
+return !1;
+},
+_rebuild: function () {
+for (var a = this; a;)
+'auto' === a.timing.duration && (a._timing.duration = a.activeDuration), a = a._parent;
+this._animation && this._animation._rebuildUnderlyingAnimation();
+},
+_reparent: function (a) {
+b.removeMulti(a);
+for (var c = 0; c < a.length; c++)
+a[c]._parent = this;
+},
+_putChild: function (a, b) {
+for (var c = b ? 'Cannot append an ancestor or self' : 'Cannot prepend an ancestor or self', d = 0; d < a.length; d++)
+if (this._isAncestor(a[d]))
+throw {
+type: DOMException.HIERARCHY_REQUEST_ERR,
+name: 'HierarchyRequestError',
+message: c
+};
+for (var d = 0; d < a.length; d++)
+b ? this.children.push(a[d]) : this.children.unshift(a[d]);
+this._reparent(a), this._rebuild();
+},
+append: function () {
+this._putChild(arguments, !0);
+},
+prepend: function () {
+this._putChild(arguments, !1);
+},
+get parent() {
+return this._parent;
+},
+get firstChild() {
+return this.children.length ? this.children[0] : null;
+},
+get lastChild() {
+return this.children.length ? this.children[this.children.length - 1] : null;
+},
+clone: function () {
+for (var b = a.cloneTimingInput(this._timingInput), c = [], d = 0; d < this.children.length; d++)
+c.push(this.children[d].clone());
+return this instanceof GroupEffect ? new GroupEffect(c, b) : new SequenceEffect(c, b);
+},
+remove: function () {
+b.removeMulti([this]);
+}
+}, window.SequenceEffect.prototype = Object.create(d.prototype), Object.defineProperty(window.SequenceEffect.prototype, 'activeDuration', {
+get: function () {
+var a = 0;
+return this.children.forEach(function (b) {
+a += c(b);
+}), Math.max(a, 0);
+}
+}), window.GroupEffect.prototype = Object.create(d.prototype), Object.defineProperty(window.GroupEffect.prototype, 'activeDuration', {
+get: function () {
+var a = 0;
+return this.children.forEach(function (b) {
+a = Math.max(a, c(b));
+}), a;
+}
+}), b.newUnderlyingAnimationForGroup = function (c) {
+var d, e = null, f = function (b) {
+var c = d._wrapper;
+return c && 'pending' != c.playState && c.effect ? null == b ? void c._removeChildAnimations() : 0 == b && c.playbackRate < 0 && (e || (e = a.normalizeTimingInput(c.effect.timing)), b = a.calculateTimeFraction(a.calculateActiveDuration(e), -1, e), isNaN(b) || null == b) ? (c._forEachChild(function (a) {
+a.currentTime = -1;
+}), void c._removeChildAnimations()) : void 0 : void 0;
+}, g = new KeyframeEffect(null, [], c._timing);
+return g.onsample = f, d = b.timeline._play(g);
+}, b.bindAnimationForGroup = function (a) {
+a._animation._wrapper = a, a._isGroup = !0, b.awaitStartTime(a), a._constructChildAnimations(), a._setExternalAnimation(a);
+}, b.groupChildDuration = c;
+}(c, e, f);
+}({}, function () {
+return this;
+}());
+Polymer({
+is: 'opaque-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+node.style.opacity = '0';
+this._effect = new KeyframeEffect(node, [
+{ 'opacity': '1' },
+{ 'opacity': '1' }
+], this.timingFromConfig(config));
+return this._effect;
+},
+complete: function (config) {
+config.node.style.opacity = '';
+}
+});
+Polymer.NeonAnimatableBehavior = {
+properties: {
+animationConfig: { type: Object },
+entryAnimation: {
+observer: '_entryAnimationChanged',
+type: String
+},
+exitAnimation: {
+observer: '_exitAnimationChanged',
+type: String
+}
+},
+_entryAnimationChanged: function () {
+this.animationConfig = this.animationConfig || {};
+if (this.entryAnimation !== 'fade-in-animation') {
+this.animationConfig['entry'] = [
+{
+name: 'opaque-animation',
+node: this
+},
+{
+name: this.entryAnimation,
+node: this
+}
+];
+} else {
+this.animationConfig['entry'] = [{
+name: this.entryAnimation,
+node: this
+}];
+}
+},
+_exitAnimationChanged: function () {
+this.animationConfig = this.animationConfig || {};
+this.animationConfig['exit'] = [{
+name: this.exitAnimation,
+node: this
+}];
+},
+_copyProperties: function (config1, config2) {
+for (var property in config2) {
+config1[property] = config2[property];
+}
+},
+_cloneConfig: function (config) {
+var clone = { isClone: true };
+this._copyProperties(clone, config);
+return clone;
+},
+_getAnimationConfigRecursive: function (type, map, allConfigs) {
+if (!this.animationConfig) {
+return;
+}
+var thisConfig;
+if (type) {
+thisConfig = this.animationConfig[type];
+} else {
+thisConfig = this.animationConfig;
+}
+if (!Array.isArray(thisConfig)) {
+thisConfig = [thisConfig];
+}
+if (thisConfig) {
+for (var config, index = 0; config = thisConfig[index]; index++) {
+if (config.animatable) {
+config.animatable._getAnimationConfigRecursive(config.type || type, map, allConfigs);
+} else {
+if (config.id) {
+var cachedConfig = map[config.id];
+if (cachedConfig) {
+if (!cachedConfig.isClone) {
+map[config.id] = this._cloneConfig(cachedConfig);
+cachedConfig = map[config.id];
+}
+this._copyProperties(cachedConfig, config);
+} else {
+map[config.id] = config;
+}
+} else {
+allConfigs.push(config);
+}
+}
+}
+}
+},
+getAnimationConfig: function (type) {
+var map = [];
+var allConfigs = [];
+this._getAnimationConfigRecursive(type, map, allConfigs);
+for (var key in map) {
+allConfigs.push(map[key]);
+}
+return allConfigs;
+}
+};
+Polymer.NeonAnimationRunnerBehaviorImpl = {
+properties: {
+_animationMeta: {
+type: Object,
+value: function () {
+return new Polymer.IronMeta({ type: 'animation' });
+}
+},
+_player: { type: Object }
+},
+_configureAnimationEffects: function (allConfigs) {
+var allAnimations = [];
+if (allConfigs.length > 0) {
+for (var config, index = 0; config = allConfigs[index]; index++) {
+var animationConstructor = this._animationMeta.byKey(config.name);
+if (animationConstructor) {
+var animation = animationConstructor && new animationConstructor();
+var effect = animation.configure(config);
+if (effect) {
+allAnimations.push({
+animation: animation,
+config: config,
+effect: effect
+});
+}
+} else {
+console.warn(this.is + ':', config.name, 'not found!');
+}
+}
+}
+return allAnimations;
+},
+_runAnimationEffects: function (allEffects) {
+return document.timeline.play(new GroupEffect(allEffects));
+},
+_completeAnimations: function (allAnimations) {
+for (var animation, index = 0; animation = allAnimations[index]; index++) {
+animation.animation.complete(animation.config);
+}
+},
+playAnimation: function (type, cookie) {
+var allConfigs = this.getAnimationConfig(type);
+if (!allConfigs) {
+return;
+}
+var allAnimations = this._configureAnimationEffects(allConfigs);
+var allEffects = allAnimations.map(function (animation) {
+return animation.effect;
+});
+if (allEffects.length > 0) {
+this._player = this._runAnimationEffects(allEffects);
+this._player.onfinish = function () {
+this._completeAnimations(allAnimations);
+if (this._player) {
+this._player.cancel();
+this._player = null;
+}
+this.fire('neon-animation-finish', cookie, { bubbles: false });
+}.bind(this);
+} else {
+this.fire('neon-animation-finish', cookie, { bubbles: false });
+}
+},
+cancelAnimation: function () {
+if (this._player) {
+this._player.cancel();
+}
+}
+};
+Polymer.NeonAnimationRunnerBehavior = [
+Polymer.NeonAnimatableBehavior,
+Polymer.NeonAnimationRunnerBehaviorImpl
+];
+(function () {
+'use strict';
+Polymer.IronDropdownScrollManager = {
+get currentLockingElement() {
+return this._lockingElements[this._lockingElements.length - 1];
+},
+elementIsScrollLocked: function (element) {
+var currentLockingElement = this.currentLockingElement;
+var scrollLocked;
+if (this._hasCachedLockedElement(element)) {
+return true;
+}
+if (this._hasCachedUnlockedElement(element)) {
+return false;
+}
+scrollLocked = !!currentLockingElement && currentLockingElement !== element && !this._composedTreeContains(currentLockingElement, element);
+if (scrollLocked) {
+this._lockedElementCache.push(element);
+} else {
+this._unlockedElementCache.push(element);
+}
+return scrollLocked;
+},
+pushScrollLock: function (element) {
+if (this._lockingElements.length === 0) {
+this._lockScrollInteractions();
+}
+this._lockingElements.push(element);
+this._lockedElementCache = [];
+this._unlockedElementCache = [];
+},
+removeScrollLock: function (element) {
+var index = this._lockingElements.indexOf(element);
+if (index === -1) {
+return;
+}
+this._lockingElements.splice(index, 1);
+this._lockedElementCache = [];
+this._unlockedElementCache = [];
+if (this._lockingElements.length === 0) {
+this._unlockScrollInteractions();
+}
+},
+_lockingElements: [],
+_lockedElementCache: null,
+_unlockedElementCache: null,
+_originalBodyStyles: {},
+_isScrollingKeypress: function (event) {
+return Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'pageup pagedown home end up left down right');
+},
+_hasCachedLockedElement: function (element) {
+return this._lockedElementCache.indexOf(element) > -1;
+},
+_hasCachedUnlockedElement: function (element) {
+return this._unlockedElementCache.indexOf(element) > -1;
+},
+_composedTreeContains: function (element, child) {
+var contentElements;
+var distributedNodes;
+var contentIndex;
+var nodeIndex;
+if (element.contains(child)) {
+return true;
+}
+contentElements = Polymer.dom(element).querySelectorAll('content');
+for (contentIndex = 0; contentIndex < contentElements.length; ++contentIndex) {
+distributedNodes = Polymer.dom(contentElements[contentIndex]).getDistributedNodes();
+for (nodeIndex = 0; nodeIndex < distributedNodes.length; ++nodeIndex) {
+if (this._composedTreeContains(distributedNodes[nodeIndex], child)) {
+return true;
+}
+}
+}
+return false;
+},
+_scrollInteractionHandler: function (event) {
+if (Polymer.IronDropdownScrollManager.elementIsScrollLocked(event.target)) {
+if (event.type === 'keydown' && !Polymer.IronDropdownScrollManager._isScrollingKeypress(event)) {
+return;
+}
+event.preventDefault();
+}
+},
+_lockScrollInteractions: function () {
+this._originalBodyStyles.overflow = document.body.style.overflow;
+this._originalBodyStyles.overflowX = document.body.style.overflowX;
+this._originalBodyStyles.overflowY = document.body.style.overflowY;
+document.body.style.overflow = 'hidden';
+document.body.style.overflowX = 'hidden';
+document.body.style.overflowY = 'hidden';
+window.addEventListener('wheel', this._scrollInteractionHandler, true);
+window.addEventListener('mousewheel', this._scrollInteractionHandler, true);
+window.addEventListener('DOMMouseScroll', this._scrollInteractionHandler, true);
+window.addEventListener('touchmove', this._scrollInteractionHandler, true);
+document.addEventListener('keydown', this._scrollInteractionHandler, true);
+},
+_unlockScrollInteractions: function () {
+document.body.style.overflow = this._originalBodyStyles.overflow;
+document.body.style.overflowX = this._originalBodyStyles.overflowX;
+document.body.style.overflowY = this._originalBodyStyles.overflowY;
+window.removeEventListener('wheel', this._scrollInteractionHandler, true);
+window.removeEventListener('mousewheel', this._scrollInteractionHandler, true);
+window.removeEventListener('DOMMouseScroll', this._scrollInteractionHandler, true);
+window.removeEventListener('touchmove', this._scrollInteractionHandler, true);
+document.removeEventListener('keydown', this._scrollInteractionHandler, true);
+}
+};
+}());
+Polymer({
+is: 'fade-in-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+this._effect = new KeyframeEffect(node, [
+{ 'opacity': '0' },
+{ 'opacity': '1' }
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'fade-out-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+this._effect = new KeyframeEffect(node, [
+{ 'opacity': '1' },
+{ 'opacity': '0' }
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'paper-menu-grow-height-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+var rect = node.getBoundingClientRect();
+var height = rect.height;
+this._effect = new KeyframeEffect(node, [
+{ height: height / 2 + 'px' },
+{ height: height + 'px' }
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'paper-menu-grow-width-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+var rect = node.getBoundingClientRect();
+var width = rect.width;
+this._effect = new KeyframeEffect(node, [
+{ width: width / 2 + 'px' },
+{ width: width + 'px' }
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'paper-menu-shrink-width-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+var rect = node.getBoundingClientRect();
+var width = rect.width;
+this._effect = new KeyframeEffect(node, [
+{ width: width + 'px' },
+{ width: width - width / 20 + 'px' }
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'paper-menu-shrink-height-animation',
+behaviors: [Polymer.NeonAnimationBehavior],
+configure: function (config) {
+var node = config.node;
+var rect = node.getBoundingClientRect();
+var height = rect.height;
+var top = rect.top;
+this.setPrefixedProperty(node, 'transformOrigin', '0 0');
+this._effect = new KeyframeEffect(node, [
+{
+height: height + 'px',
+transform: 'translateY(0)'
+},
+{
+height: height / 2 + 'px',
+transform: 'translateY(-20px)'
+}
+], this.timingFromConfig(config));
+return this._effect;
+}
+});
+Polymer({
+is: 'iron-icon',
+properties: {
+icon: {
+type: String,
+observer: '_iconChanged'
+},
+theme: {
+type: String,
+observer: '_updateIcon'
+},
+src: {
+type: String,
+observer: '_srcChanged'
+},
+_meta: { value: Polymer.Base.create('iron-meta', { type: 'iconset' }) }
+},
+_DEFAULT_ICONSET: 'icons',
+_iconChanged: function (icon) {
+var parts = (icon || '').split(':');
+this._iconName = parts.pop();
+this._iconsetName = parts.pop() || this._DEFAULT_ICONSET;
+this._updateIcon();
+},
+_srcChanged: function (src) {
+this._updateIcon();
+},
+_usesIconset: function () {
+return this.icon || !this.src;
+},
+_updateIcon: function () {
+if (this._usesIconset()) {
+if (this._iconsetName) {
+this._iconset = this._meta.byKey(this._iconsetName);
+if (this._iconset) {
+this._iconset.applyIcon(this, this._iconName, this.theme);
+this.unlisten(window, 'iron-iconset-added', '_updateIcon');
+} else {
+this.listen(window, 'iron-iconset-added', '_updateIcon');
+}
+}
+} else {
+if (!this._img) {
+this._img = document.createElement('img');
+this._img.style.width = '100%';
+this._img.style.height = '100%';
+this._img.draggable = false;
+}
+this._img.src = this.src;
+Polymer.dom(this.root).appendChild(this._img);
+}
+}
+});
+(function () {
+'use strict';
+var sharedPanel = null;
+function classNames(obj) {
+var classes = [];
+for (var key in obj) {
+if (obj.hasOwnProperty(key) && obj[key]) {
+classes.push(key);
+}
+}
+return classes.join(' ');
+}
+Polymer({
+is: 'paper-drawer-panel',
+properties: {
+defaultSelected: {
+type: String,
+value: 'main'
+},
+disableEdgeSwipe: {
+type: Boolean,
+value: false
+},
+disableSwipe: {
+type: Boolean,
+value: false
+},
+dragging: {
+type: Boolean,
+value: false,
+readOnly: true,
+notify: true
+},
+drawerWidth: {
+type: String,
+value: '256px'
+},
+edgeSwipeSensitivity: {
+type: Number,
+value: 30
+},
+forceNarrow: {
+type: Boolean,
+value: false
+},
+hasTransform: {
+type: Boolean,
+value: function () {
+return 'transform' in this.style;
+}
+},
+hasWillChange: {
+type: Boolean,
+value: function () {
+return 'willChange' in this.style;
+}
+},
+narrow: {
+reflectToAttribute: true,
+type: Boolean,
+value: false,
+readOnly: true,
+notify: true
+},
+peeking: {
+type: Boolean,
+value: false,
+readOnly: true,
+notify: true
+},
+responsiveWidth: {
+type: String,
+value: '640px'
+},
+rightDrawer: {
+type: Boolean,
+value: false
+},
+selected: {
+reflectToAttribute: true,
+notify: true,
+type: String,
+value: null
+},
+drawerToggleAttribute: {
+type: String,
+value: 'paper-drawer-toggle'
+},
+transition: {
+type: Boolean,
+value: false
+}
+},
+listeners: {
+tap: '_onTap',
+track: '_onTrack',
+down: '_downHandler',
+up: '_upHandler'
+},
+observers: ['_forceNarrowChanged(forceNarrow, defaultSelected)'],
+togglePanel: function () {
+if (this._isMainSelected()) {
+this.openDrawer();
+} else {
+this.closeDrawer();
+}
+},
+openDrawer: function () {
+this.selected = 'drawer';
+},
+closeDrawer: function () {
+this.selected = 'main';
+},
+ready: function () {
+this.transition = true;
+},
+_computeIronSelectorClass: function (narrow, transition, dragging, rightDrawer, peeking) {
+return classNames({
+dragging: dragging,
+'narrow-layout': narrow,
+'right-drawer': rightDrawer,
+'left-drawer': !rightDrawer,
+transition: transition,
+peeking: peeking
+});
+},
+_computeDrawerStyle: function (drawerWidth) {
+return 'width:' + drawerWidth + ';';
+},
+_computeMainStyle: function (narrow, rightDrawer, drawerWidth) {
+var style = '';
+style += 'left:' + (narrow || rightDrawer ? '0' : drawerWidth) + ';';
+if (rightDrawer) {
+style += 'right:' + (narrow ? '' : drawerWidth) + ';';
+}
+return style;
+},
+_computeMediaQuery: function (forceNarrow, responsiveWidth) {
+return forceNarrow ? '' : '(max-width: ' + responsiveWidth + ')';
+},
+_computeSwipeOverlayHidden: function (narrow, disableEdgeSwipe) {
+return !narrow || disableEdgeSwipe;
+},
+_onTrack: function (event) {
+if (sharedPanel && this !== sharedPanel) {
+return;
+}
+switch (event.detail.state) {
+case 'start':
+this._trackStart(event);
+break;
+case 'track':
+this._trackX(event);
+break;
+case 'end':
+this._trackEnd(event);
+break;
+}
+},
+_responsiveChange: function (narrow) {
+this._setNarrow(narrow);
+if (this.narrow) {
+this.selected = this.defaultSelected;
+}
+this.setScrollDirection(this._swipeAllowed() ? 'y' : 'all');
+this.fire('paper-responsive-change', { narrow: this.narrow });
+},
+_onQueryMatchesChanged: function (event) {
+this._responsiveChange(event.detail.value);
+},
+_forceNarrowChanged: function () {
+this._responsiveChange(this.forceNarrow || this.$.mq.queryMatches);
+},
+_swipeAllowed: function () {
+return this.narrow && !this.disableSwipe;
+},
+_isMainSelected: function () {
+return this.selected === 'main';
+},
+_startEdgePeek: function () {
+this.width = this.$.drawer.offsetWidth;
+this._moveDrawer(this._translateXForDeltaX(this.rightDrawer ? -this.edgeSwipeSensitivity : this.edgeSwipeSensitivity));
+this._setPeeking(true);
+},
+_stopEdgePeek: function () {
+if (this.peeking) {
+this._setPeeking(false);
+this._moveDrawer(null);
+}
+},
+_downHandler: function (event) {
+if (!this.dragging && this._isMainSelected() && this._isEdgeTouch(event) && !sharedPanel) {
+this._startEdgePeek();
+event.preventDefault();
+sharedPanel = this;
+}
+},
+_upHandler: function () {
+this._stopEdgePeek();
+sharedPanel = null;
+},
+_onTap: function (event) {
+var targetElement = Polymer.dom(event).localTarget;
+var isTargetToggleElement = targetElement && this.drawerToggleAttribute && targetElement.hasAttribute(this.drawerToggleAttribute);
+if (isTargetToggleElement) {
+this.togglePanel();
+}
+},
+_isEdgeTouch: function (event) {
+var x = event.detail.x;
+return !this.disableEdgeSwipe && this._swipeAllowed() && (this.rightDrawer ? x >= this.offsetWidth - this.edgeSwipeSensitivity : x <= this.edgeSwipeSensitivity);
+},
+_trackStart: function (event) {
+if (this._swipeAllowed()) {
+sharedPanel = this;
+this._setDragging(true);
+if (this._isMainSelected()) {
+this._setDragging(this.peeking || this._isEdgeTouch(event));
+}
+if (this.dragging) {
+this.width = this.$.drawer.offsetWidth;
+this.transition = false;
+}
+}
+},
+_translateXForDeltaX: function (deltaX) {
+var isMain = this._isMainSelected();
+if (this.rightDrawer) {
+return Math.max(0, isMain ? this.width + deltaX : deltaX);
+} else {
+return Math.min(0, isMain ? deltaX - this.width : deltaX);
+}
+},
+_trackX: function (event) {
+if (this.dragging) {
+var dx = event.detail.dx;
+if (this.peeking) {
+if (Math.abs(dx) <= this.edgeSwipeSensitivity) {
+return;
+}
+this._setPeeking(false);
+}
+this._moveDrawer(this._translateXForDeltaX(dx));
+}
+},
+_trackEnd: function (event) {
+if (this.dragging) {
+var xDirection = event.detail.dx > 0;
+this._setDragging(false);
+this.transition = true;
+sharedPanel = null;
+this._moveDrawer(null);
+if (this.rightDrawer) {
+this[xDirection ? 'closeDrawer' : 'openDrawer']();
+} else {
+this[xDirection ? 'openDrawer' : 'closeDrawer']();
+}
+}
+},
+_transformForTranslateX: function (translateX) {
+if (translateX === null) {
+return '';
+}
+return this.hasWillChange ? 'translateX(' + translateX + 'px)' : 'translate3d(' + translateX + 'px, 0, 0)';
+},
+_moveDrawer: function (translateX) {
+this.transform(this._transformForTranslateX(translateX), this.$.drawer);
+}
+});
+}());
+(function () {
+'use strict';
+function classNames(obj) {
+var classNames = [];
+for (var key in obj) {
+if (obj.hasOwnProperty(key) && obj[key]) {
+classNames.push(key);
+}
+}
+return classNames.join(' ');
+}
+Polymer({
+is: 'paper-toolbar',
+hostAttributes: { 'role': 'toolbar' },
+properties: {
+bottomJustify: {
+type: String,
+value: ''
+},
+justify: {
+type: String,
+value: ''
+},
+middleJustify: {
+type: String,
+value: ''
+}
+},
+attached: function () {
+this._observer = this._observe(this);
+this._updateAriaLabelledBy();
+},
+detached: function () {
+if (this._observer) {
+this._observer.disconnect();
+}
+},
+_observe: function (node) {
+var observer = new MutationObserver(function () {
+this._updateAriaLabelledBy();
+}.bind(this));
+observer.observe(node, {
+childList: true,
+subtree: true
+});
+return observer;
+},
+_updateAriaLabelledBy: function () {
+var labelledBy = [];
+var contents = Polymer.dom(this.root).querySelectorAll('content');
+for (var content, index = 0; content = contents[index]; index++) {
+var nodes = Polymer.dom(content).getDistributedNodes();
+for (var node, jndex = 0; node = nodes[jndex]; jndex++) {
+if (node.classList && node.classList.contains('title')) {
+if (node.id) {
+labelledBy.push(node.id);
+} else {
+var id = 'paper-toolbar-label-' + Math.floor(Math.random() * 10000);
+node.id = id;
+labelledBy.push(id);
+}
+}
+}
+}
+if (labelledBy.length > 0) {
+this.setAttribute('aria-labelledby', labelledBy.join(' '));
+}
+},
+_computeBarClassName: function (barJustify) {
+var classObj = {
+'center': true,
+'horizontal': true,
+'layout': true,
+'toolbar-tools': true
+};
+if (barJustify) {
+var justifyClassName = barJustify === 'justified' ? barJustify : barJustify + '-justified';
+classObj[justifyClassName] = true;
+}
+return classNames(classObj);
+}
+});
+}());
+(function () {
+var Utility = {
+distance: function (x1, y1, x2, y2) {
+var xDelta = x1 - x2;
+var yDelta = y1 - y2;
+return Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+},
+now: window.performance && window.performance.now ? window.performance.now.bind(window.performance) : Date.now
+};
+function ElementMetrics(element) {
+this.element = element;
+this.width = this.boundingRect.width;
+this.height = this.boundingRect.height;
+this.size = Math.max(this.width, this.height);
+}
+ElementMetrics.prototype = {
+get boundingRect() {
+return this.element.getBoundingClientRect();
+},
+furthestCornerDistanceFrom: function (x, y) {
+var topLeft = Utility.distance(x, y, 0, 0);
+var topRight = Utility.distance(x, y, this.width, 0);
+var bottomLeft = Utility.distance(x, y, 0, this.height);
+var bottomRight = Utility.distance(x, y, this.width, this.height);
+return Math.max(topLeft, topRight, bottomLeft, bottomRight);
+}
+};
+function Ripple(element) {
+this.element = element;
+this.color = window.getComputedStyle(element).color;
+this.wave = document.createElement('div');
+this.waveContainer = document.createElement('div');
+this.wave.style.backgroundColor = this.color;
+this.wave.classList.add('wave');
+this.waveContainer.classList.add('wave-container');
+Polymer.dom(this.waveContainer).appendChild(this.wave);
+this.resetInteractionState();
+}
+Ripple.MAX_RADIUS = 300;
+Ripple.prototype = {
+get recenters() {
+return this.element.recenters;
+},
+get center() {
+return this.element.center;
+},
+get mouseDownElapsed() {
+var elapsed;
+if (!this.mouseDownStart) {
+return 0;
+}
+elapsed = Utility.now() - this.mouseDownStart;
+if (this.mouseUpStart) {
+elapsed -= this.mouseUpElapsed;
+}
+return elapsed;
+},
+get mouseUpElapsed() {
+return this.mouseUpStart ? Utility.now() - this.mouseUpStart : 0;
+},
+get mouseDownElapsedSeconds() {
+return this.mouseDownElapsed / 1000;
+},
+get mouseUpElapsedSeconds() {
+return this.mouseUpElapsed / 1000;
+},
+get mouseInteractionSeconds() {
+return this.mouseDownElapsedSeconds + this.mouseUpElapsedSeconds;
+},
+get initialOpacity() {
+return this.element.initialOpacity;
+},
+get opacityDecayVelocity() {
+return this.element.opacityDecayVelocity;
+},
+get radius() {
+var width2 = this.containerMetrics.width * this.containerMetrics.width;
+var height2 = this.containerMetrics.height * this.containerMetrics.height;
+var waveRadius = Math.min(Math.sqrt(width2 + height2), Ripple.MAX_RADIUS) * 1.1 + 5;
+var duration = 1.1 - 0.2 * (waveRadius / Ripple.MAX_RADIUS);
+var timeNow = this.mouseInteractionSeconds / duration;
+var size = waveRadius * (1 - Math.pow(80, -timeNow));
+return Math.abs(size);
+},
+get opacity() {
+if (!this.mouseUpStart) {
+return this.initialOpacity;
+}
+return Math.max(0, this.initialOpacity - this.mouseUpElapsedSeconds * this.opacityDecayVelocity);
+},
+get outerOpacity() {
+var outerOpacity = this.mouseUpElapsedSeconds * 0.3;
+var waveOpacity = this.opacity;
+return Math.max(0, Math.min(outerOpacity, waveOpacity));
+},
+get isOpacityFullyDecayed() {
+return this.opacity < 0.01 && this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
+},
+get isRestingAtMaxRadius() {
+return this.opacity >= this.initialOpacity && this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
+},
+get isAnimationComplete() {
+return this.mouseUpStart ? this.isOpacityFullyDecayed : this.isRestingAtMaxRadius;
+},
+get translationFraction() {
+return Math.min(1, this.radius / this.containerMetrics.size * 2 / Math.sqrt(2));
+},
+get xNow() {
+if (this.xEnd) {
+return this.xStart + this.translationFraction * (this.xEnd - this.xStart);
+}
+return this.xStart;
+},
+get yNow() {
+if (this.yEnd) {
+return this.yStart + this.translationFraction * (this.yEnd - this.yStart);
+}
+return this.yStart;
+},
+get isMouseDown() {
+return this.mouseDownStart && !this.mouseUpStart;
+},
+resetInteractionState: function () {
+this.maxRadius = 0;
+this.mouseDownStart = 0;
+this.mouseUpStart = 0;
+this.xStart = 0;
+this.yStart = 0;
+this.xEnd = 0;
+this.yEnd = 0;
+this.slideDistance = 0;
+this.containerMetrics = new ElementMetrics(this.element);
+},
+draw: function () {
+var scale;
+var translateString;
+var dx;
+var dy;
+this.wave.style.opacity = this.opacity;
+scale = this.radius / (this.containerMetrics.size / 2);
+dx = this.xNow - this.containerMetrics.width / 2;
+dy = this.yNow - this.containerMetrics.height / 2;
+this.waveContainer.style.webkitTransform = 'translate(' + dx + 'px, ' + dy + 'px)';
+this.waveContainer.style.transform = 'translate3d(' + dx + 'px, ' + dy + 'px, 0)';
+this.wave.style.webkitTransform = 'scale(' + scale + ',' + scale + ')';
+this.wave.style.transform = 'scale3d(' + scale + ',' + scale + ',1)';
+},
+downAction: function (event) {
+var xCenter = this.containerMetrics.width / 2;
+var yCenter = this.containerMetrics.height / 2;
+this.resetInteractionState();
+this.mouseDownStart = Utility.now();
+if (this.center) {
+this.xStart = xCenter;
+this.yStart = yCenter;
+this.slideDistance = Utility.distance(this.xStart, this.yStart, this.xEnd, this.yEnd);
+} else {
+this.xStart = event ? event.detail.x - this.containerMetrics.boundingRect.left : this.containerMetrics.width / 2;
+this.yStart = event ? event.detail.y - this.containerMetrics.boundingRect.top : this.containerMetrics.height / 2;
+}
+if (this.recenters) {
+this.xEnd = xCenter;
+this.yEnd = yCenter;
+this.slideDistance = Utility.distance(this.xStart, this.yStart, this.xEnd, this.yEnd);
+}
+this.maxRadius = this.containerMetrics.furthestCornerDistanceFrom(this.xStart, this.yStart);
+this.waveContainer.style.top = (this.containerMetrics.height - this.containerMetrics.size) / 2 + 'px';
+this.waveContainer.style.left = (this.containerMetrics.width - this.containerMetrics.size) / 2 + 'px';
+this.waveContainer.style.width = this.containerMetrics.size + 'px';
+this.waveContainer.style.height = this.containerMetrics.size + 'px';
+},
+upAction: function (event) {
+if (!this.isMouseDown) {
+return;
+}
+this.mouseUpStart = Utility.now();
+},
+remove: function () {
+Polymer.dom(this.waveContainer.parentNode).removeChild(this.waveContainer);
+}
+};
+Polymer({
+is: 'paper-ripple',
+behaviors: [Polymer.IronA11yKeysBehavior],
+properties: {
+initialOpacity: {
+type: Number,
+value: 0.25
+},
+opacityDecayVelocity: {
+type: Number,
+value: 0.8
+},
+recenters: {
+type: Boolean,
+value: false
+},
+center: {
+type: Boolean,
+value: false
+},
+ripples: {
+type: Array,
+value: function () {
+return [];
+}
+},
+animating: {
+type: Boolean,
+readOnly: true,
+reflectToAttribute: true,
+value: false
+},
+holdDown: {
+type: Boolean,
+value: false,
+observer: '_holdDownChanged'
+},
+noink: {
+type: Boolean,
+value: false
+},
+_animating: { type: Boolean },
+_boundAnimate: {
+type: Function,
+value: function () {
+return this.animate.bind(this);
+}
+}
+},
+observers: ['_noinkChanged(noink, isAttached)'],
+get target() {
+var ownerRoot = Polymer.dom(this).getOwnerRoot();
+var target;
+if (this.parentNode.nodeType == 11) {
+target = ownerRoot.host;
+} else {
+target = this.parentNode;
+}
+return target;
+},
+keyBindings: {
+'enter:keydown': '_onEnterKeydown',
+'space:keydown': '_onSpaceKeydown',
+'space:keyup': '_onSpaceKeyup'
+},
+attached: function () {
+this.listen(this.target, 'up', 'uiUpAction');
+this.listen(this.target, 'down', 'uiDownAction');
+},
+detached: function () {
+this.unlisten(this.target, 'up', 'uiUpAction');
+this.unlisten(this.target, 'down', 'uiDownAction');
+},
+get shouldKeepAnimating() {
+for (var index = 0; index < this.ripples.length; ++index) {
+if (!this.ripples[index].isAnimationComplete) {
+return true;
+}
+}
+return false;
+},
+simulatedRipple: function () {
+this.downAction(null);
+this.async(function () {
+this.upAction();
+}, 1);
+},
+uiDownAction: function (event) {
+if (!this.noink) {
+this.downAction(event);
+}
+},
+downAction: function (event) {
+if (this.holdDown && this.ripples.length > 0) {
+return;
+}
+var ripple = this.addRipple();
+ripple.downAction(event);
+if (!this._animating) {
+this.animate();
+}
+},
+uiUpAction: function (event) {
+if (!this.noink) {
+this.upAction(event);
+}
+},
+upAction: function (event) {
+if (this.holdDown) {
+return;
+}
+this.ripples.forEach(function (ripple) {
+ripple.upAction(event);
+});
+this.animate();
+},
+onAnimationComplete: function () {
+this._animating = false;
+this.$.background.style.backgroundColor = null;
+this.fire('transitionend');
+},
+addRipple: function () {
+var ripple = new Ripple(this);
+Polymer.dom(this.$.waves).appendChild(ripple.waveContainer);
+this.$.background.style.backgroundColor = ripple.color;
+this.ripples.push(ripple);
+this._setAnimating(true);
+return ripple;
+},
+removeRipple: function (ripple) {
+var rippleIndex = this.ripples.indexOf(ripple);
+if (rippleIndex < 0) {
+return;
+}
+this.ripples.splice(rippleIndex, 1);
+ripple.remove();
+if (!this.ripples.length) {
+this._setAnimating(false);
+}
+},
+animate: function () {
+var index;
+var ripple;
+this._animating = true;
+for (index = 0; index < this.ripples.length; ++index) {
+ripple = this.ripples[index];
+ripple.draw();
+this.$.background.style.opacity = ripple.outerOpacity;
+if (ripple.isOpacityFullyDecayed && !ripple.isRestingAtMaxRadius) {
+this.removeRipple(ripple);
+}
+}
+if (!this.shouldKeepAnimating && this.ripples.length === 0) {
+this.onAnimationComplete();
+} else {
+window.requestAnimationFrame(this._boundAnimate);
+}
+},
+_onEnterKeydown: function () {
+this.uiDownAction();
+this.async(this.uiUpAction, 1);
+},
+_onSpaceKeydown: function () {
+this.uiDownAction();
+},
+_onSpaceKeyup: function () {
+this.uiUpAction();
+},
+_holdDownChanged: function (newVal, oldVal) {
+if (oldVal === undefined) {
+return;
+}
+if (newVal) {
+this.downAction();
+} else {
+this.upAction();
+}
+},
+_noinkChanged: function (noink, attached) {
+if (attached) {
+this.keyEventTarget = noink ? this : this.target;
+}
+}
+});
+}());
+Polymer({
+is: 'paper-icon-button',
+hostAttributes: {
+role: 'button',
+tabindex: '0'
+},
+behaviors: [Polymer.PaperInkyFocusBehavior],
+properties: {
+src: { type: String },
+icon: { type: String },
+alt: {
+type: String,
+observer: '_altChanged'
+}
+},
+_altChanged: function (newValue, oldValue) {
+var label = this.getAttribute('aria-label');
+if (!label || oldValue == label) {
+this.setAttribute('aria-label', newValue);
+}
+}
+});
+(function () {
+Polymer({
+is: 'iron-overlay-backdrop',
+properties: {
+opened: {
+readOnly: true,
+reflectToAttribute: true,
+type: Boolean,
+value: false
+},
+_manager: {
+type: Object,
+value: Polymer.IronOverlayManager
+}
+},
+prepare: function () {
+if (!this.parentNode) {
+Polymer.dom(document.body).appendChild(this);
+this.style.zIndex = this._manager.currentOverlayZ() - 1;
+}
+},
+open: function () {
+if (this._manager.getBackdrops().length < 2) {
+this._setOpened(true);
+}
+},
+close: function () {
+if (this._manager.getBackdrops().length < 2) {
+this._setOpened(false);
+}
+},
+complete: function () {
+if (this._manager.getBackdrops().length === 0 && this.parentNode) {
+Polymer.dom(this.parentNode).removeChild(this);
+}
+}
+});
+}());
+(function () {
+'use strict';
+Polymer({
+is: 'iron-dropdown',
+behaviors: [
+Polymer.IronControlState,
+Polymer.IronA11yKeysBehavior,
+Polymer.IronOverlayBehavior,
+Polymer.NeonAnimationRunnerBehavior
+],
+properties: {
+horizontalAlign: {
+type: String,
+value: 'left',
+reflectToAttribute: true
+},
+verticalAlign: {
+type: String,
+value: 'top',
+reflectToAttribute: true
+},
+horizontalOffset: {
+type: Number,
+value: 0,
+notify: true
+},
+verticalOffset: {
+type: Number,
+value: 0,
+notify: true
+},
+positionTarget: {
+type: Object,
+observer: '_positionTargetChanged'
+},
+openAnimationConfig: { type: Object },
+closeAnimationConfig: { type: Object },
+focusTarget: { type: Object },
+noAnimations: {
+type: Boolean,
+value: false
+},
+allowOutsideScroll: {
+type: Boolean,
+value: false
+},
+_positionRectMemo: { type: Object }
+},
+listeners: { 'neon-animation-finish': '_onNeonAnimationFinish' },
+observers: ['_updateOverlayPosition(verticalAlign, horizontalAlign, verticalOffset, horizontalOffset)'],
+attached: function () {
+if (this.positionTarget === undefined) {
+this.positionTarget = this._defaultPositionTarget;
+}
+},
+get containedElement() {
+return Polymer.dom(this.$.content).getDistributedNodes()[0];
+},
+get _focusTarget() {
+return this.focusTarget || this.containedElement;
+},
+get _defaultPositionTarget() {
+var parent = Polymer.dom(this).parentNode;
+if (parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+parent = parent.host;
+}
+return parent;
+},
+get _positionRect() {
+if (!this._positionRectMemo && this.positionTarget) {
+this._positionRectMemo = this.positionTarget.getBoundingClientRect();
+}
+return this._positionRectMemo;
+},
+get _horizontalAlignTargetValue() {
+var target;
+if (this.horizontalAlign === 'right') {
+target = document.documentElement.clientWidth - this._positionRect.right;
+} else {
+target = this._positionRect.left;
+}
+target += this.horizontalOffset;
+return Math.max(target, 0);
+},
+get _verticalAlignTargetValue() {
+var target;
+if (this.verticalAlign === 'bottom') {
+target = document.documentElement.clientHeight - this._positionRect.bottom;
+} else {
+target = this._positionRect.top;
+}
+target += this.verticalOffset;
+return Math.max(target, 0);
+},
+_openedChanged: function (opened) {
+if (opened && this.disabled) {
+this.cancel();
+} else {
+this.cancelAnimation();
+this._prepareDropdown();
+Polymer.IronOverlayBehaviorImpl._openedChanged.apply(this, arguments);
+}
+if (this.opened) {
+this._focusContent();
+}
+},
+_renderOpened: function () {
+if (!this.allowOutsideScroll) {
+Polymer.IronDropdownScrollManager.pushScrollLock(this);
+}
+if (!this.noAnimations && this.animationConfig && this.animationConfig.open) {
+this.$.contentWrapper.classList.add('animating');
+this.playAnimation('open');
+} else {
+Polymer.IronOverlayBehaviorImpl._renderOpened.apply(this, arguments);
+}
+},
+_renderClosed: function () {
+Polymer.IronDropdownScrollManager.removeScrollLock(this);
+if (!this.noAnimations && this.animationConfig && this.animationConfig.close) {
+this.$.contentWrapper.classList.add('animating');
+this.playAnimation('close');
+} else {
+Polymer.IronOverlayBehaviorImpl._renderClosed.apply(this, arguments);
+}
+},
+_onNeonAnimationFinish: function () {
+this.$.contentWrapper.classList.remove('animating');
+if (this.opened) {
+Polymer.IronOverlayBehaviorImpl._renderOpened.apply(this);
+} else {
+Polymer.IronOverlayBehaviorImpl._renderClosed.apply(this);
+}
+},
+_onIronResize: function () {
+var containedElement = this.containedElement;
+var scrollTop;
+var scrollLeft;
+if (containedElement) {
+scrollTop = containedElement.scrollTop;
+scrollLeft = containedElement.scrollLeft;
+}
+if (this.opened) {
+this._updateOverlayPosition();
+}
+Polymer.IronOverlayBehaviorImpl._onIronResize.apply(this, arguments);
+if (containedElement) {
+containedElement.scrollTop = scrollTop;
+containedElement.scrollLeft = scrollLeft;
+}
+},
+_positionTargetChanged: function () {
+this._updateOverlayPosition();
+},
+_updateAnimationConfig: function () {
+var animationConfig = {};
+var animations = [];
+if (this.openAnimationConfig) {
+animationConfig.open = [{ name: 'opaque-animation' }].concat(this.openAnimationConfig);
+animations = animations.concat(animationConfig.open);
+}
+if (this.closeAnimationConfig) {
+animationConfig.close = this.closeAnimationConfig;
+animations = animations.concat(animationConfig.close);
+}
+animations.forEach(function (animation) {
+animation.node = this.containedElement;
+}, this);
+this.animationConfig = animationConfig;
+},
+_prepareDropdown: function () {
+this.sizingTarget = this.containedElement || this.sizingTarget;
+this._updateAnimationConfig();
+this._updateOverlayPosition();
+},
+_updateOverlayPosition: function () {
+this._positionRectMemo = null;
+if (!this.positionTarget) {
+return;
+}
+this.style[this.horizontalAlign] = this._horizontalAlignTargetValue + 'px';
+this.style[this.verticalAlign] = this._verticalAlignTargetValue + 'px';
+if (this._fitInfo) {
+this._fitInfo.inlineStyle[this.horizontalAlign] = this.style[this.horizontalAlign];
+this._fitInfo.inlineStyle[this.verticalAlign] = this.style[this.verticalAlign];
+}
+},
+_focusContent: function () {
+this.async(function () {
+if (this._focusTarget) {
+this._focusTarget.focus();
+}
+});
+}
+});
+}());
+Polymer({
+is: 'paper-material',
+properties: {
+elevation: {
+type: Number,
+reflectToAttribute: true,
+value: 1
+},
+animated: {
+type: Boolean,
+reflectToAttribute: true,
+value: false
+}
+}
+});
+(function () {
+'use strict';
+var PaperMenuButton = Polymer({
+is: 'paper-menu-button',
+behaviors: [
+Polymer.IronA11yKeysBehavior,
+Polymer.IronControlState
+],
+properties: {
+opened: {
+type: Boolean,
+value: false,
+notify: true,
+observer: '_openedChanged'
+},
+horizontalAlign: {
+type: String,
+value: 'left',
+reflectToAttribute: true
+},
+verticalAlign: {
+type: String,
+value: 'top',
+reflectToAttribute: true
+},
+horizontalOffset: {
+type: Number,
+value: 0,
+notify: true
+},
+verticalOffset: {
+type: Number,
+value: 0,
+notify: true
+},
+noAnimations: {
+type: Boolean,
+value: false
+},
+ignoreSelect: {
+type: Boolean,
+value: false
+},
+openAnimationConfig: {
+type: Object,
+value: function () {
+return [
+{
+name: 'fade-in-animation',
+timing: {
+delay: 100,
+duration: 200
+}
+},
+{
+name: 'paper-menu-grow-width-animation',
+timing: {
+delay: 100,
+duration: 150,
+easing: PaperMenuButton.ANIMATION_CUBIC_BEZIER
+}
+},
+{
+name: 'paper-menu-grow-height-animation',
+timing: {
+delay: 100,
+duration: 275,
+easing: PaperMenuButton.ANIMATION_CUBIC_BEZIER
+}
+}
+];
+}
+},
+closeAnimationConfig: {
+type: Object,
+value: function () {
+return [
+{
+name: 'fade-out-animation',
+timing: { duration: 150 }
+},
+{
+name: 'paper-menu-shrink-width-animation',
+timing: {
+delay: 100,
+duration: 50,
+easing: PaperMenuButton.ANIMATION_CUBIC_BEZIER
+}
+},
+{
+name: 'paper-menu-shrink-height-animation',
+timing: {
+duration: 200,
+easing: 'ease-in'
+}
+}
+];
+}
+},
+_dropdownContent: { type: Object }
+},
+hostAttributes: {
+role: 'group',
+'aria-haspopup': 'true'
+},
+listeners: { 'iron-select': '_onIronSelect' },
+get contentElement() {
+return Polymer.dom(this.$.content).getDistributedNodes()[0];
+},
+open: function () {
+if (this.disabled) {
+return;
+}
+this.$.dropdown.open();
+},
+close: function () {
+this.$.dropdown.close();
+},
+_onIronSelect: function (event) {
+if (!this.ignoreSelect) {
+this.close();
+}
+},
+_openedChanged: function (opened, oldOpened) {
+if (opened) {
+this._dropdownContent = this.contentElement;
+this.fire('paper-dropdown-open');
+} else if (oldOpened != null) {
+this.fire('paper-dropdown-close');
+}
+},
+_disabledChanged: function (disabled) {
+Polymer.IronControlState._disabledChanged.apply(this, arguments);
+if (disabled && this.opened) {
+this.close();
+}
+}
+});
+PaperMenuButton.ANIMATION_CUBIC_BEZIER = 'cubic-bezier(.3,.95,.5,1)';
+PaperMenuButton.MAX_ANIMATION_TIME_MS = 400;
+Polymer.PaperMenuButton = PaperMenuButton;
 }());
