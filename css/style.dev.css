@@ -26,6 +26,17 @@ paper-header-panel .paper-toolbar-0 {
 	background: #263238;
 }
 
+paper-item.paper-item-0 {
+	iron-icon.iron-icon-1 {
+		margin-right: 5px;
+	}
+	a {
+		display: block;
+		color: inherit;
+		width: 100%;
+		text-decoration: none;
+	}
+}
 #main {
 	background: #eee;
 }

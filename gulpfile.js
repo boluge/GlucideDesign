@@ -36,7 +36,7 @@ gulp.task('css', ['sass'], function(){
 })
 
 gulp.task('polymer', function(){
-	return gulp.src('elements/elements.html')
+	return gulp.src('polymer/elements.html')
         .pipe(polybuild({
             maximumCrush: false
         }))
@@ -50,6 +50,6 @@ gulp.task('default',['css','polymer'], function () {
         }
     });
     gulp.watch(["sass/*.scss","css/style.dev.css"], ['css']);
-    gulp.watch("elements/elements.html", ['polymer']);
+    gulp.watch("polymer/**/*.html", ['polymer']);
     gulp.watch(["css/style.css", "index.html", "elements/elements.build.html"]).on("change", browserSync.reload);
 })

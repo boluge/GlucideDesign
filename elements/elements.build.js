@@ -11927,3 +11927,7 @@ Polymer.IronButtonState
 'use strict';
 Polymer({ is: 'my-model' });
 }());
+(function () {
+'use strict';
+Polymer({ is: 'my-menu-link' });
+}());
