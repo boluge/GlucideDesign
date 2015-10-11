@@ -17,11 +17,6 @@ var configcss = [
     require('cssnano')
 ]
 
-var vulcanize = {
-  inlineScripts: true,
-  inlineCss: true
-}
-
 gulp.task('sass', function(){
 	return gulp.src('sass/prepross.scss')
 		.pipe(sass().on('error', sass.logError))
@@ -38,7 +33,7 @@ gulp.task('css', ['sass'], function(){
 gulp.task('polymer', function(){
 	return gulp.src('polymer/elements.html')
         .pipe(polybuild({
-            maximumCrush: false
+            maximumCrush: true
         }))
 		.pipe(gulp.dest('elements/'))
 })
