@@ -4,6 +4,10 @@ $browser-background: #08c;
 $browser-text: #fff;
 $browser-link: #FFEB3B;
 
+*:focus {
+	outline: none;
+}
+
 body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
