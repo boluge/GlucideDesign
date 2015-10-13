@@ -773,9 +773,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>:host {display: block;box-sizing: border-box;}</style>
 
-    <h3>My Meals</h3>
+    <h2>Titre des meals</h2>
+    <template is="dom-repeat" items="{{employees}}">
+      <div>
+        <p>Test : {{import.first}} {{import.last}}</p>
+      </div>
+    </template>
 
   </template>
+</dom-module>
 
-  </dom-module>
-</div><script src="elements.build.js"></script></body></html>
+  </div><script src="elements.build.js"></script></body></html>

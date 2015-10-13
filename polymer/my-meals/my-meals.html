@@ -9,16 +9,24 @@
       }
     </style>
 
-    <h3>My Meals</h3>
+    <h2>Titre des meals</h2>
+    <template is="dom-repeat" items="{{employees}}">
+      <div>
+        <p>Test : {{import.first}} {{import.last}}</p>
+      </div>
+    </template>
 
   </template>
+</dom-module>
 
   <script>
-    (function () {
-      'use strict';
-      Polymer({
-        is: 'my-meals',
-      });
-    })();
+    Polymer({
+      is: 'my-meals',
+      ready: function() {
+        this.employees = [
+            {first: 'Bob', last: 'Smith'},
+            {first: 'Sally', last: 'Johnson'}
+        ];
+      }
+    });
   </script>
-</dom-module>
