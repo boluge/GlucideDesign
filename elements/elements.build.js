@@ -44,4 +44,4 @@ Polymer({is:"paper-material",properties:{elevation:{type:Number,reflectToAttribu
 !function(){Polymer({is:"paper-menu",behaviors:[Polymer.IronMenuBehavior]})}();
 Polymer({is:"paper-item",hostAttributes:{role:"listitem",tabindex:"0"},behaviors:[Polymer.IronControlState,Polymer.IronButtonState]});
 !function(){"use strict";Polymer({is:"my-menu-link"})}();
-Polymer({is:"my-meals",ready:function(){this.employees=[{first:"Bob",last:"Smith"},{first:"Sally",last:"Johnson"}]}});
+Polymer({is:"my-meals-list",properties:{meals:{type:Object}},ready:function(){this.meals=[{titre:"Titre",id:"1",glycemie:"1.43"},{titre:"Second",id:"2",glycemie:"1.25"},{titre:"Troisième",id:"3",glycemie:"0.85"}]}});

@@ -769,16 +769,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   </dom-module>
-<dom-module id="my-meals" assetpath="my-meals/">
+<dom-module id="my-meals-list" assetpath="my-meals-list/">
   <template>
     <style>:host {display: block;box-sizing: border-box;}</style>
 
-    <h2>Titre des meals</h2>
-    <template is="dom-repeat" items="{{employees}}">
-      <div>
-        <p>Test : {{import.first}} {{import.last}}</p>
-      </div>
-    </template>
+      <template is="Dom-repeat" items="{{meals}}">
+        <h2><span>{{item.id}}</span> | <span>{{item.titre}}</span></h2>
+        <p>{{item.glycemie}}</p>
+      </template>
 
   </template>
 </dom-module>

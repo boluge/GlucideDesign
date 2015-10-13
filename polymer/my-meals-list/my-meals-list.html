@@ -1,0 +1,36 @@
+<link rel="import" href="../../components/polymer/polymer.html">
+
+<dom-module id="my-meals-list">
+  <template>
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+      }
+    </style>
+
+      <template is="Dom-repeat" items="{{meals}}">
+        <h2><span>{{item.id}}</span> | <span>{{item.titre}}</span></h2>
+        <p>{{item.glycemie}}</p>
+      </template>
+
+  </template>
+</dom-module>
+
+  <script>
+    Polymer({
+      is: 'my-meals-list',
+      properties: {
+        meals: {
+          type: Object
+        }
+      },
+      ready: function() {
+        this.meals = [
+            {titre: 'Titre', id: '1', glycemie: '1.43'},
+            {titre: 'Second', id: '2', glycemie: '1.25'},
+            {titre: 'Troisième', id: '3', glycemie: '0.85'}
+        ];
+      }
+    });
+  </script>

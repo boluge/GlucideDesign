@@ -1,0 +1,33 @@
+<link rel="import" href="../../components/polymer/polymer.html">
+
+<dom-module id="my-meal">
+  <template>
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+      }
+    </style>
+
+
+    <div>
+      <h2>{{titre}}</h2>
+      <p>Glycémie : {{test}}</p>
+    </div>
+
+  </template>
+</dom-module>
+
+  <script>
+    Polymer({
+      is: 'my-meal',
+      properties: {
+        titre: {
+          type: String
+        },
+        test: {
+          type: String
+        }
+      }
+    });
+  </script>
