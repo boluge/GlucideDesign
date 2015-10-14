@@ -31,5 +31,13 @@
         "blood_sugar":"1.25",
         "created_at":"2015-10-14 14:57:46",
         "updated_at":"2015-10-14 14:57:46"
+    },{
+        "id":7,
+        "name":"Encore un repas",
+        "slug":"un-repas",
+        "user_id":2,
+        "blood_sugar":"1.95",
+        "created_at":"2015-10-14 14:57:46",
+        "updated_at":"2015-10-14 14:57:46"
     }
 ]
