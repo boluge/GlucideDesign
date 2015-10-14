@@ -44,4 +44,14 @@ paper-item.paper-item-0 {
 }
 #main {
 	background: #eee;
+	//height: 100vh;
+	div.main-content {
+		margin: 0;
+    	height: 100vh;
+	}
+}
+
+
+my-meals-list {
+	height: 100%;
 }

@@ -8,7 +8,7 @@ $susy: (
 	container: auto,
 	container-position: center,
 	columns: 12,
-	gutters: .25,
+	gutters: 0.5,
 	column-width: false,
 	global-box-sizing: content-box,
 	last-flow: to,
@@ -27,6 +27,7 @@ $susy: (
 	)
 );
 
-.span {
-	@include span(3);
+.grid-meal {
+	@include span(4);
+	margin-bottom: 20px;
 }

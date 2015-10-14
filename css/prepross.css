@@ -1,8 +1,9 @@
-.span {
+.grid-meal {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  width: 25%;
+  width: 33.33333%;
   float: left;
-  padding-left: 0.83333%;
-  padding-right: 0.83333%; }
+  padding-left: 1.38889%;
+  padding-right: 1.38889%;
+  margin-bottom: 20px; }
