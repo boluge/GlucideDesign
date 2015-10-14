@@ -20,17 +20,20 @@
     </style>
 
     <section class="layout vertical">
-
         <div class="header paper-font-title">
-         <h1>Mes repas</h1>
+            <h1>Mes repas</h1>
         </div>
-
-        <paper-dialog-scrollable class="flex paper-font-body1 x-scope paper-dialog-scrollable-0 no-padding can-scroll">
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempore illum voluptatibus quisquam rerum, ducimus adipisci porro recusandae cupiditate dolor voluptatem, voluptatum dicta. Consequatur beatae ducimus autem, veritatis officia eaque optio.</p>
-          <template is="Dom-repeat" items="{{meals}}">
+        <paper-dialog-scrollable class="flex">
+            <iron-ajax
+                auto
+                url="http://localhost:3000/json/meals.json"
+                handle-as="json"
+                last-response="{{meals}}"
+                debounce-duration="300"></iron-ajax>
+            <template is="Dom-repeat" items="{{meals}}">
               <div class="grid-meal">
-                  <paper-card heading="{{item.titre}}" image="http://placehold.it/350x150">
-                     <div class="card-content">{{item.glycemie}}</div>
+                  <paper-card heading="{{item.name}}" image="http://placehold.it/350x150">
+                     <div class="card-content">{{item.blood_sugar}}</div>
                      <div class="card-actions">
                          <paper-button>ID du repas:&nbsp;<span>{{item.id}}</span></paper-button>
                      </div>
@@ -40,7 +43,6 @@
           <div class="clear"></div>
         <paper-dialog-scrollable>
     </section>
-
   </template>
 </dom-module>
 
@@ -53,20 +55,7 @@
         }
       },
       ready: function() {
-        this.meals = [
-            {titre: 'Titre', id: '1', glycemie: '1.43'},
-            {titre: 'Second', id: '2', glycemie: '1.25'},
-            {titre: 'Troisième', id: '3', glycemie: '0.85'},
-            {titre: 'Quatrième', id: '4', glycemie: '0.85'},
-            {titre: 'Cinquième', id: '5', glycemie: '0.85'},
-            {titre: 'Sixième', id: '6', glycemie: '0.85'},
-            {titre: 'Second', id: '2', glycemie: '1.25'},
-            {titre: 'Troisième', id: '3', glycemie: '0.85'},
-            {titre: 'Quatrième', id: '4', glycemie: '0.85'},
-            {titre: 'Cinquième', id: '5', glycemie: '0.85'},
-            {titre: 'Sixième', id: '6', glycemie: '0.85'},
-            {titre: 'Second', id: '2', glycemie: '1.25'}
-        ];
+
       }
     });
   </script>

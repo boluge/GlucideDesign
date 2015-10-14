@@ -812,17 +812,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style>:host {display: block;box-sizing: border-box;}section {height: 100%;}.header {padding: 8px 24px;}.clear {	clear: both;height: 80px;}</style>
 
     <section class="layout vertical">
-
         <div class="header paper-font-title">
-         <h1>Mes repas</h1>
+            <h1>Mes repas</h1>
         </div>
-
-        <paper-dialog-scrollable class="flex paper-font-body1 x-scope paper-dialog-scrollable-0 no-padding can-scroll">
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempore illum voluptatibus quisquam rerum, ducimus adipisci porro recusandae cupiditate dolor voluptatem, voluptatum dicta. Consequatur beatae ducimus autem, veritatis officia eaque optio.</p>
-          <template is="Dom-repeat" items="{{meals}}">
+        <paper-dialog-scrollable class="flex">
+            <iron-ajax auto="" url="http://localhost:3000/json/meals.json" handle-as="json" last-response="{{meals}}" debounce-duration="300"></iron-ajax>
+            <template is="Dom-repeat" items="{{meals}}">
               <div class="grid-meal">
-                  <paper-card heading="{{item.titre}}" image="http://placehold.it/350x150">
-                     <div class="card-content">{{item.glycemie}}</div>
+                  <paper-card heading="{{item.name}}" image="http://placehold.it/350x150">
+                     <div class="card-content">{{item.blood_sugar}}</div>
                      <div class="card-actions">
                          <paper-button>ID du repas:&nbsp;<span>{{item.id}}</span></paper-button>
                      </div>
@@ -832,7 +830,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <div class="clear"></div>
         <paper-dialog-scrollable>
     </paper-dialog-scrollable></paper-dialog-scrollable></section>
-
   </template>
 </dom-module>
 

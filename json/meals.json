@@ -1,0 +1,35 @@
+[
+    {
+        "id":5,
+        "name":"Mon troisi\u00e8me repas",
+        "slug":"mon-troisieme-repas",
+        "user_id":2,
+        "blood_sugar":"1.85",
+        "created_at":"2015-10-14 15:00:44",
+        "updated_at":"2015-10-14 15:00:44"
+    },{
+        "id":4,
+        "name":"Mon second repas",
+        "slug":"mon-second-repas",
+        "user_id":2,
+        "blood_sugar":"2.58",
+        "created_at":"2015-10-14 14:58:14",
+        "updated_at":"2015-10-14 14:58:14"
+    },{
+        "id":3,
+        "name":"Mon premier repas",
+        "slug":"mon-premier-repas",
+        "user_id":2,
+        "blood_sugar":"1.25",
+        "created_at":"2015-10-14 14:57:46",
+        "updated_at":"2015-10-14 14:57:46"
+    },{
+        "id":7,
+        "name":"Mon repas",
+        "slug":"mon-repas",
+        "user_id":2,
+        "blood_sugar":"1.25",
+        "created_at":"2015-10-14 14:57:46",
+        "updated_at":"2015-10-14 14:57:46"
+    }
+]
