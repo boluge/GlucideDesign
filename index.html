@@ -17,21 +17,13 @@
         <!--[if lt IE 8]>
           <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-        <div class="content">
-            <paper-toolbar class="transparent">
+        <paper-drawer-panel force-narrow>
+          <paper-header-panel drawer >
+            <!--<paper-toolbar>
               <span class="title">
-                  <paper-icon-button icon="icons:menu"></paper-icon-button>
                   <img class="logo" src="img/glucide.svg">
               </span>
-            </paper-toolbar>
-        </div>
-
-
-        <!--<paper-drawer-panel>
-          <paper-header-panel drawer>
-            <paper-toolbar>
-              <span class="title">Glucide</span>
-            </paper-toolbar>
+          </paper-toolbar>-->
             <paper-menu>
               <my-menu-link link="#" icon="icons:home">Accueil</my-menu-link>
               <my-menu-link link="#" icon="icons:perm-identity">Login</my-menu-link>
@@ -40,15 +32,20 @@
             </paper-menu>
           </paper-header-panel>
           <paper-header-panel main>
-            <paper-toolbar>
+            <paper-toolbar class="transparent">
               <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
-              <span class="title" paper-drawer-toggle>Glucide</span>
+              <span class="title">
+                  <img class="logo" src="img/glucide.svg">
+              </span>
             </paper-toolbar>
             <div class="main-content">
-              <my-meals-list></my-meals-list>
+                <!-- Menu de ~74px -->
+                <!-- Colonne de 400px -->
+                <!-- Colonne du reste - ~74px à droite -->
+              <!--<my-meals-list></my-meals-list>-->
             </div>
           </paper-header-panel>
-      </paper-drawer-panel>-->
+      </paper-drawer-panel>
         <script defer src="js/main.js"></script>
     </body>
 </html>
