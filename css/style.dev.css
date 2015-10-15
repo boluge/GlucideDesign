@@ -12,6 +12,21 @@ body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
 	margin: 0;
+	background: url(../img/background.jpg) #000 no-repeat center center fixed;
+	background-size: cover;
+}
+
+.content {
+	height: 100vh;
+	background-image: linear-gradient(rgba(0,0,0,0.4) 0%,rgba(0,0,0,.6) 75%,rgba(0,0,0,.8) 100%);
+}
+
+paper-toolbar.transparent {
+	background: transparent;
+	.logo {
+		height: 25px;
+		width: auto;
+	}
 }
 
 .browserupgrade {
