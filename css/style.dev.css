@@ -12,7 +12,7 @@ body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
 	margin: 0;
-	background: url(../img/background2.jpg) #000 no-repeat center center fixed;
+	background: url(../img/background3.jpg) #000 no-repeat center center fixed;
 	background-size: cover;
 }
 
@@ -22,9 +22,13 @@ body {
 	margin-top: 5px;
 }
 
-paper-toolbar.transparent {
-	background: transparent;
+paper-toolbar.paper-toolbar-0 {
+	background: #37474F;
+	&.transparent {
+		background: transparent;
+	}
 }
+
 
 .browserupgrade {
 	margin: 0;
@@ -50,7 +54,7 @@ paper-item.paper-item-0 {
 		text-decoration: none;
 	}
 }
-#main {
+#main.paper-drawer-panel {
 	height: 100vh;
 	background-image: linear-gradient(rgba(0,0,0,0.4) 0%,rgba(0,0,0,.6) 75%,rgba(0,0,0,.8) 100%);
 	div.main-content {

@@ -19,11 +19,11 @@
         <![endif]-->
         <paper-drawer-panel force-narrow>
           <paper-header-panel drawer >
-            <!--<paper-toolbar>
+            <paper-toolbar>
               <span class="title">
                   <img class="logo" src="img/glucide.svg">
               </span>
-          </paper-toolbar>-->
+          </paper-toolbar>
             <paper-menu>
               <my-menu-link link="#" icon="icons:home">Accueil</my-menu-link>
               <my-menu-link link="#" icon="icons:perm-identity">Login</my-menu-link>
@@ -39,9 +39,23 @@
               </span>
             </paper-toolbar>
             <div class="main-content">
-                <!-- Menu de ~74px -->
-                <!-- Colonne de 400px -->
-                <!-- Colonne du reste - ~74px à droite -->
+                <my-work-space>
+                    <!-- Menu de ~74px -->
+                    <my-work-space-menu menu >
+                        Icones
+                        <my-icon-link link="#" icon="icons:home"></my-icon-link>
+                    </my-work-space-menu>
+
+                    <!-- Colonne de 400px -->
+                    <my-work-space-items items >
+                        <h2>Items</h2>
+                    </my-work-space-items>
+
+                    <!-- Colonne du reste - ~74px à droite -->
+                    <my-work-space-main main >
+                        <h2>Main content</h2>
+                    </my-work-space-main>
+                </my-work-space>
               <!--<my-meals-list></my-meals-list>-->
             </div>
           </paper-header-panel>

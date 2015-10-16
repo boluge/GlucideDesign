@@ -51,4 +51,4 @@ Polymer({is:"paper-icon-button",hostAttributes:{role:"button",tabindex:"0"},beha
 !function(){Polymer({is:"paper-menu",behaviors:[Polymer.IronMenuBehavior]})}();
 Polymer({is:"paper-item",hostAttributes:{role:"listitem",tabindex:"0"},behaviors:[Polymer.IronControlState,Polymer.IronButtonState]});
 !function(){"use strict";Polymer({is:"my-menu-link"})}();
-Polymer({is:"my-meals-list",properties:{meals:{type:Object}},ready:function(){}});
+Polymer({is:"my-work-space",created:function(){},ready:function(){},attached:function(){},detached:function(){},attributeChanged:function(t,n){}});

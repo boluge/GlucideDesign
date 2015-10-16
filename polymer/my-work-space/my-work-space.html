@@ -1,0 +1,76 @@
+<!-- Imports polymer -->
+<link rel="import" href="../../components/polymer/polymer.html">
+
+<!-- Defines element markup -->
+<dom-module id="my-work-space">
+    <style media="screen">
+        :root {
+            display: block;
+        }
+        #my-icons-menu {
+            position: absolute;
+            top: 64px;
+            left: 0;
+            width: 72px;
+            height: 100vh;
+            //background: rgba(255, 0, 0, 0.1);
+            color: #fff;
+            text-align: center;
+        }
+        #my-list-items {
+            width: 400px;
+            position: absolute;
+            top: 84px;
+            left: 72px;
+            width: 400px;
+            height: 100vh;
+            color: #333;
+        }
+        #my-main {
+            position: absolute;
+            top: 84px;
+            left: 472px;
+            right: 72px;
+            height: 100vh;
+            color: #fff;
+            padding: 0 20px;
+        }
+    </style>
+    <template>
+
+        <div id="my-icons-menu">
+            <content select="[menu]"></content>
+        </div>
+
+        <paper-card id="my-list-items">
+            <content select="[items]"></content>
+        </paper-card>
+
+        <div id="my-main">
+            <content select="[main]"></content>
+        </div>
+
+    </template>
+
+    <!-- Registers custom element -->
+    <script>
+    Polymer({
+        is: 'my-work-space',
+
+        // Fires when an instance of the element is created
+        created: function() {},
+
+        // Fires when the local DOM has been fully prepared
+        ready: function() {},
+
+        // Fires when the element was inserted into the document
+        attached: function() {},
+
+        // Fires when the element was removed from the document
+        detached: function() {},
+
+        // Fires when an attribute was added, removed, or updated
+        attributeChanged: function(name, type) {}
+    });
+    </script>
+</dom-module>
