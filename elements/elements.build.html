@@ -37,8 +37,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <style is="custom-style">:root {--shadow-transition: {transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);};--shadow-none: {box-shadow: none;};/* from http://codepen.io/shyndman/pen/c5394ddf2e8b2a5c9185904b57421cdb */--shadow-elevation-2dp: {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),0 1px 5px 0 rgba(0, 0, 0, 0.12),0 3px 1px -2px rgba(0, 0, 0, 0.2);};--shadow-elevation-3dp: {box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),0 1px 8px 0 rgba(0, 0, 0, 0.12),0 3px 3px -2px rgba(0, 0, 0, 0.4);};--shadow-elevation-4dp: {box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),0 1px 10px 0 rgba(0, 0, 0, 0.12),0 2px 4px -1px rgba(0, 0, 0, 0.4);};--shadow-elevation-6dp: {box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14),0 1px 18px 0 rgba(0, 0, 0, 0.12),0 3px 5px -1px rgba(0, 0, 0, 0.4);};--shadow-elevation-8dp: {box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14),0 3px 14px 2px rgba(0, 0, 0, 0.12),0 5px 5px -3px rgba(0, 0, 0, 0.4);};--shadow-elevation-16dp: {box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14),06px 30px 5px rgba(0, 0, 0, 0.12),08px 10px -5px rgba(0, 0, 0, 0.4);};}</style>
 
 
-
-
 </head><body><div hidden="" by-vulcanize=""><dom-module id="iron-icon" assetpath="../components/iron-icon/">
 
   <style>:host {@apply(--layout-inline);@apply(--layout-center-center);position: relative;vertical-align: middle;fill: currentcolor;width: var(--iron-icon-width, 24px);height: var(--iron-icon-height, 24px);}</style>
@@ -808,23 +806,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   </dom-module>
 <dom-module id="my-work-space" assetpath="my-work-space/">
-    <style media="screen">:root {display: block;}#my-icons-menu {position: absolute;top: 64px;left: 0;width: 72px;height: 100vh;//background: rgba(255, 0, 0, 0.1);color: #fff;text-align: center;}#my-list-items {width: 400px;position: absolute;top: 84px;left: 72px;width: 400px;height: 100vh;color: #333;}#my-main {position: absolute;top: 84px;left: 472px;right: 72px;height: 100vh;color: #fff;padding: 0 20px;}</style>
+    <style media="screen">:root {display: block;}h2 {color: #fff;text-align: center;}#my-icons-menu {position: absolute;top: 64px;left: 0;width: 72px;height: 100vh;//background: rgba(255, 0, 0, 0.1);color: #fff;text-align: center;}#my-list-items {width: 400px;position: absolute;top: 84px;left: 72px;width: 400px;height: 100vh;color: #333;}#my-main {position: absolute;top: 84px;left: 472px;right: 72px;height: 100vh;color: #fff;padding: 0 20px;}paper-dialog-scrollable.content {height: 100%;}</style>
+    
     <template>
-
-        <div id="my-icons-menu">
-            <content select="[menu]"></content>
-        </div>
-
-        <paper-card id="my-list-items" heading="Card Title">
-            <div class="card-content">
-                <content select="[items]"></content>
+        <iron-media-query query="(min-width: 1024px)" query-matches="{{queryMatches}}"></iron-media-query>
+        <template is="dom-if" if="{{queryMatches}}">
+            <div id="my-icons-menu">
+                <content select="[menu]"></content>
             </div>
-        </paper-card>
 
-        <div id="my-main">
-            <content select="[main]"></content>
-        </div>
+            <paper-card id="my-list-items" heading="Card Title">
+                <div class="card-content">
+                    <content select="[items]"></content>
+                </div>
+            </paper-card>
 
+            <div id="my-main">
+                <content select="[main]"></content>
+            </div>
+        </template>
+        <template is="dom-if" if="{{!queryMatches}}">
+            <paper-dialog-scrollable class="content">
+                <h2>Metre ici le contenue pour les mobiles</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+            </paper-dialog-scrollable>
+        </template>
     </template>
 
     

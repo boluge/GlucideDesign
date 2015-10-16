@@ -7,6 +7,10 @@
         :root {
             display: block;
         }
+        h2 {
+            color: #fff;
+            text-align: center;
+        }
         #my-icons-menu {
             position: absolute;
             top: 64px;
@@ -35,23 +39,38 @@
             color: #fff;
             padding: 0 20px;
         }
+        paper-dialog-scrollable.content {
+            height: 100%;
+        }
     </style>
+    <!-- Utiliser
+    <iron-media-query query="(min-width: 600px)" query-matches="{{queryMatches}}"></iron-media-query> -->
     <template>
-
-        <div id="my-icons-menu">
-            <content select="[menu]"></content>
-        </div>
-
-        <paper-card id="my-list-items" heading="Card Title">
-            <div class="card-content">
-                <content select="[items]"></content>
+        <iron-media-query query="(min-width: 1024px)" query-matches="{{queryMatches}}"></iron-media-query>
+        <template is="dom-if" if="{{queryMatches}}">
+            <div id="my-icons-menu">
+                <content select="[menu]"></content>
             </div>
-        </paper-card>
 
-        <div id="my-main">
-            <content select="[main]"></content>
-        </div>
+            <paper-card id="my-list-items" heading="Card Title">
+                <div class="card-content">
+                    <content select="[items]"></content>
+                </div>
+            </paper-card>
 
+            <div id="my-main">
+                <content select="[main]"></content>
+            </div>
+        </template>
+        <template is="dom-if" if="{{!queryMatches}}">
+            <paper-dialog-scrollable class="content">
+                <h2>Metre ici le contenue pour les mobiles</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum ratione deserunt illum inventore culpa, assumenda, minima, excepturi fugiat amet veritatis nulla laudantium ullam impedit. Vero eligendi vel quibusdam culpa expedita.</p>
+            </paper-dialog-scrollable>
+        </template>
     </template>
 
     <!-- Registers custom element -->
