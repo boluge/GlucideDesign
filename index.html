@@ -23,12 +23,10 @@
               <span class="title">
                   <img class="logo" src="img/glucide.svg">
               </span>
-          </paper-toolbar>
+            </paper-toolbar>
             <paper-menu>
-              <my-menu-link link="#" icon="icons:home">Accueil</my-menu-link>
-              <my-menu-link link="#" icon="icons:perm-identity">Login</my-menu-link>
-              <my-menu-link link="#" icon="icons:content-paste">Register</my-menu-link>
-              <my-menu-link link="#" icon="icons:power-settings-new">Logout</my-menu-link>
+              <my-menu-link link="#" icon="icons:account-circle">Mon compte</my-menu-link>
+              <my-menu-link link="#" icon="maps:restaurant-menu">Mes repas</my-menu-link>
             </paper-menu>
           </paper-header-panel>
           <paper-header-panel main>
@@ -37,23 +35,21 @@
               <span class="title">
                   <img class="logo" src="img/glucide.svg">
               </span>
+              <paper-icon-button icon="device:brightness-auto" ></paper-icon-button>
+              <paper-icon-button icon="icons:lock-open" ></paper-icon-button>
+
             </paper-toolbar>
 
             <div class="main-content">
                 <my-work-space>
                     <!-- Menu de ~74px -->
                     <my-work-space-menu menu >
-                        Icones
-                        <my-icon-link link="#" icon="icons:home"></my-icon-link>
+                      <my-menu-icon link="#" icon="icons:account-circle" tooltip="Compte"></my-menu-icon>
+                      <my-menu-icon link="#" icon="maps:restaurant-menu" tooltip="Repas"></my-menu-icon>
                     </my-work-space-menu>
                     <!-- Colonne de 400px -->
                     <my-work-space-items items >
-                        <ul>
-                            <li>Lorem ipsum dolor.</li>
-                            <li>Lorem ipsum.</li>
-                            <li>Lorem ipsum dolor.</li>
-                            <li>Lorem ipsum</li>
-                        </ul>
+                        <my-meals-list></my-meals-list>
                     </my-work-space-items>
 
                     <!-- Colonne du reste - ~74px à droite -->

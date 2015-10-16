@@ -8,38 +8,38 @@
             box-sizing: border-box;
         }
         section {
-            height: 90%;
+            height: 100vh;
         }
-        .header {
-            padding: 8px 24px;
+        .blood-sugar {
+          background: #eee;
+          color: #999;
+          display: block;
+          height: 40px;
+          width: 40px;
+          line-height: 40px;
+          border-radius: 50%;
+          text-align: center;
+          float: left;
+          margin: 5px;
+          font-size: 10px;
         }
         .clear {
-        	clear: both;
+          clear: both;
+          height: 1px;
+          display: block;
         }
     </style>
 
     <section class="layout vertical">
-        <div class="header paper-font-title">
-            <h1>Mes repas</h1>
-        </div>
         <paper-dialog-scrollable class="flex">
-            <iron-ajax
-                auto
-                url="/json/meals.json"
-                handle-as="json"
-                last-response="{{meals}}"
-                debounce-duration="300"></iron-ajax>
-            <template is="Dom-repeat" items="{{meals}}">
-              <div class="grid-meal">
-                  <paper-card heading="{{item.name}}" image="http://placehold.it/450x150">
-                     <div class="card-content">{{item.blood_sugar}}</div>
-                     <div class="card-actions">
-                         <paper-button>ID du repas:&nbsp;<span>{{item.id}}</span></paper-button>
-                     </div>
-                 </paper-card>
-              </div>
-          </template>
-          <div class="clear"></div>
+          <iron-ajax url="/json/meals.json" last-response="{{data}}" auto></iron-ajax>
+            <iron-list items="[[data]]" as="item">
+              <template>
+                <div>
+                  Name: <span>[[item.name]]</span>
+                </div>
+              </template>
+            </iron-list>
         <paper-dialog-scrollable>
     </section>
   </template>

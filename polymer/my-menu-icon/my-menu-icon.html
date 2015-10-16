@@ -1,0 +1,63 @@
+<!-- Imports polymer -->
+<link rel="import" href="../../components/polymer/polymer.html">
+
+<!-- Defines element markup -->
+<dom-module id="my-menu-icon">
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+        --paper-tooltip-background:	#333;
+        --paper-tooltip-opacity:	0.9;
+        --paper-tooltip-text-color: #fff;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+        line-height: 58px;
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+      a:focus {
+        outline: none;
+      }
+      iron-icon {
+        color: #fff;
+        margin: 0 auto;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      }
+
+    </style>
+    <template>
+      <a id="m" href="{{link}}">
+        <paper-item>
+          <iron-icon icon="{{icon}}"></iron-icon>
+        </paper-item>
+      </a>
+      <paper-tooltip for="m" offset="0">{{tooltip}}</paper-tooltip>
+    </template>
+
+    <!-- Registers custom element -->
+    <script>
+    Polymer({
+        is: 'my-menu-icon',
+
+        // Fires when an instance of the element is created
+        created: function() {},
+
+        // Fires when the local DOM has been fully prepared
+        ready: function() {},
+
+        // Fires when the element was inserted into the document
+        attached: function() {},
+
+        // Fires when the element was removed from the document
+        detached: function() {},
+
+        // Fires when an attribute was added, removed, or updated
+        attributeChanged: function(name, type) {}
+    });
+    </script>
+</dom-module>

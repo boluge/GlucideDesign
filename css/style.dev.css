@@ -14,12 +14,6 @@ $browser-link: #FFEB3B;
   100% { opacity: 1; }
 }
 
-@-webkit-keyframes body {
-  0%   { opacity: 0; }
-  50%  { opacity: 0; }
-  100% { opacity: 1; }
-}
-
 body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
@@ -66,18 +60,30 @@ paper-toolbar.paper-toolbar-0 {
 	}
 }
 
-paper-item.paper-item-0 {
-	iron-icon {
-		margin-right: 15px;
-	}
+paper-menu {
+	paper-item.paper-item-0 {
+		iron-icon {
+			margin-right: 15px;
+		}
 
-	a {
-		display: block;
-		color: inherit;
-		width: 100%;
-		text-decoration: none;
+		a {
+			display: block;
+			color: inherit;
+			width: 100%;
+			text-decoration: none;
+		}
 	}
 }
+
+paper-card .card-content {
+    padding: 0px;
+    position: relative;
+}
+
+.scrollable.paper-dialog-scrollable {
+	padding: 0;
+}
+
 #main.paper-drawer-panel {
 	height: 100vh;
 	background-image: linear-gradient(rgba(0,0,0,0.4) 0%,rgba(0,0,0,.6) 75%,rgba(0,0,0,.8) 100%);

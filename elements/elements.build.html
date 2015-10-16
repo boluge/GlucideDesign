@@ -625,6 +625,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 </dom-module>
 
+<dom-module id="iron-list" assetpath="../components/iron-list/">
+  <template>
+    <style>:host {display: block;}:host(.has-scroller) {overflow: auto;}:host(:not(.has-scroller)) {position: relative;}#items {@apply(--iron-list-items-container);position: relative;}#items > ::content > * {width: 100%;box-sizing: border-box;position: absolute;top: 0;will-change: transform;}</style>
+
+    <array-selector id="selector" items="{{items}}" selected="{{selectedItems}}" selected-item="{{selectedItem}}">
+    </array-selector>
+
+    <div id="items">
+      <content></content>
+    </div>
+
+  </template>
+</dom-module>
+
+<dom-module id="paper-tooltip" assetpath="../components/paper-tooltip/">
+  <template>
+    <style>:host {display: block;position: absolute;outline: none;z-index: 1002;-moz-user-select: none;-ms-user-select: none;-webkit-user-select: none;user-select: none;cursor: default;}#tooltip {display: block;outline: none;@apply(--paper-font-common-base);font-size: 10px;line-height: 1;background-color: var(--paper-tooltip-background, #616161);opacity: var(--paper-tooltip-opacity, 0.9);color: var(--paper-tooltip-text-color, white);padding: 8px;border-radius: 2px;@apply(--paper-tooltip);}/* Thanks IE 10. */.hidden {display: none !important;}</style>
+
+    <div id="tooltip" class="hidden">
+      <content></content>
+    </div>
+  </template>
+
+  </dom-module>
 <dom-module id="paper-dialog-scrollable" assetpath="../components/paper-dialog-scrollable/">
 
   <style>:host {display: block;position: relative;}:host(.is-scrolled:not(:first-child))::before {content: '';position: absolute;top: 0;left: 0;right: 0;height: 1px;background: var(--divider-color);}:host(.can-scroll:not(.scrolled-to-bottom):not(:last-child))::after {content: '';position: absolute;bottom: 0;left: 0;right: 0;height: 1px;background: var(--divider-color);}.scrollable {padding: 0 24px;@apply(--layout-scroll);@apply(--paper-dialog-scrollable);}</style>
@@ -805,8 +829,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   </dom-module>
+<dom-module id="my-menu-icon" assetpath="my-menu-icon/">
+    <style>:host {display: block;box-sizing: border-box;--paper-tooltip-background:	#333;--paper-tooltip-opacity:	0.9;--paper-tooltip-text-color: #fff;}a {text-decoration: none;color: inherit;outline: none;line-height: 58px;display: block;width: 100%;text-align: center;}a:focus {outline: none;}iron-icon {color: #fff;margin: 0 auto;text-shadow: 0 1px 3px rgba(0,0,0,0.5);}</style>
+    <template>
+      <a id="m" href="{{link}}">
+        <paper-item>
+          <iron-icon icon="{{icon}}"></iron-icon>
+        </paper-item>
+      </a>
+      <paper-tooltip for="m" offset="0">{{tooltip}}</paper-tooltip>
+    </template>
+
+    
+    </dom-module>
 <dom-module id="my-work-space" assetpath="my-work-space/">
-    <style media="screen">:root {display: block;}h2 {color: #fff;text-align: center;}#my-icons-menu {position: absolute;top: 64px;left: 0;width: 72px;height: 100vh;//background: rgba(255, 0, 0, 0.1);color: #fff;text-align: center;}#my-list-items {width: 400px;position: absolute;top: 84px;left: 72px;width: 400px;height: 100vh;color: #333;}#my-main {position: absolute;top: 84px;left: 472px;right: 72px;height: 100vh;color: #fff;padding: 0 20px;}paper-dialog-scrollable.content {height: 100%;}</style>
+    <style media="screen">:root {display: block;}h2 {color: #fff;text-align: center;}#my-icons-menu {position: absolute;top: 64px;left: 0;width: 72px;height: 100vh;//background: rgba(255, 0, 0, 0.1);color: #fff;text-align: center;}#my-list-items {width: 400px;position: absolute;top: 84px;left: 72px;width: 400px;height: 100vh;color: #333;padding: 0;}#my-main {position: absolute;top: 84px;left: 472px;right: 72px;height: 100vh;color: #fff;padding: 0 20px;}paper-dialog-scrollable.content {height: 100%;}</style>
     
     <template>
         <iron-media-query query="(min-width: 1024px)" query-matches="{{queryMatches}}"></iron-media-query>
@@ -815,7 +852,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <content select="[menu]"></content>
             </div>
 
-            <paper-card id="my-list-items" heading="Card Title">
+            <paper-card id="my-list-items">
                 <div class="card-content">
                     <content select="[items]"></content>
                 </div>
@@ -838,4 +875,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     
     </dom-module>
-</div><script src="elements.build.js"></script></body></html>
+<dom-module id="my-meals-list" assetpath="my-meals-list/">
+  <template>
+    <style>:host {display: block;box-sizing: border-box;}section {height: 100vh;}.blood-sugar {background: #eee;color: #999;display: block;height: 40px;width: 40px;line-height: 40px;border-radius: 50%;text-align: center;float: left;margin: 5px;font-size: 10px;}.clear {clear: both;height: 1px;display: block;}</style>
+
+    <section class="layout vertical">
+        <paper-dialog-scrollable class="flex">
+          <iron-ajax url="/json/meals.json" last-response="{{data}}" auto=""></iron-ajax>
+            <iron-list items="[[data]]" as="item">
+              <template>
+                <div>
+                  Name: <span>[[item.name]]</span>
+                </div>
+              </template>
+            </iron-list>
+        <paper-dialog-scrollable>
+    </paper-dialog-scrollable></paper-dialog-scrollable></section>
+  </template>
+</dom-module>
+
+  </div><script src="elements.build.js"></script></body></html>
