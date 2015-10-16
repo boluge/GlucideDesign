@@ -8,12 +8,29 @@ $browser-link: #FFEB3B;
 	outline: none;
 }
 
+@-webkit-keyframes fondu-background {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
 	margin: 0;
-	background: url(../img/background3.jpg) #000 no-repeat center center fixed;
+	background: #000;
+}
+
+.imgBackground {
+	background: url(../img/background4.jpg) #000 no-repeat center center fixed;
+	z-index: -5;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
 	background-size: cover;
+	transition: opacity 1s linear;
+	animation: fondu-background 3s;
 }
 
 .logo {
