@@ -10,6 +10,7 @@ $browser-link: #FFEB3B;
 
 @-webkit-keyframes fondu-background {
   0%   { opacity: 0; }
+  30%  { opacity: 0; }
   100% { opacity: 1; }
 }
 
@@ -17,7 +18,7 @@ body {
 	font-family: 'Lato', sans-serif;
 	padding: 0;
 	margin: 0;
-	background: #000;
+	background: #666;
 }
 
 .imgBackground {
@@ -29,7 +30,7 @@ body {
 	bottom: 0;
 	right: 0;
 	background-size: cover;
-	transition: opacity 1s linear;
+	transition: opacity 3s linear;
 	animation: fondu-background 3s;
 }
 
