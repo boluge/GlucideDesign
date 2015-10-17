@@ -7,6 +7,8 @@
             display: block;
             box-sizing: border-box;
             height: 100%;
+            --paper-fab-background: #FFC107;
+            --paper-fab-keyboard-focus-background: #FFC107;
         }
         section {
             box-sizing: border-box;
@@ -25,9 +27,22 @@
         paper-ripple {
 
         }
+        paper-fab {
+           position: absolute;
+           top: -19px;
+           right: 24px;
+        }
+        .add-meal {
+           padding: 0 16px;
+        }
     </style>
 
     <section class="layout vertical">
+      <div class="header-meal">
+         <paper-fab mini icon="add"></paper-fab>
+         <p class="add-meal">Ajouter un repas</p>
+      </div>
+
         <paper-dialog-scrollable class="flex">
           <iron-ajax url="/json/meals.json" last-response="{{data}}" auto></iron-ajax>
             <iron-list items="{{data}}" as="item">
