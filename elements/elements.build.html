@@ -649,6 +649,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   </dom-module>
+<dom-module id="paper-ripple" assetpath="../components/paper-ripple/">
+
+  
+  
+  <template>
+    <style>:host {display: block;position: absolute;border-radius: inherit;overflow: hidden;top: 0;left: 0;right: 0;bottom: 0;}:host([animating]) {/* This resolves a rendering issue in Chrome (as of 40) where theripple is not properly clipped by its parent (which may haverounded corners). See: http://jsbin.com/temexa/4Note: We only apply this style conditionally. Otherwise, the browserwill create a new compositing layer for every ripple element on thepage, and that would be bad. */-webkit-transform: translate(0, 0);transform: translate3d(0, 0, 0);}:host([noink]) {pointer-events: none;}#background,#waves,.wave-container,.wave {pointer-events: none;position: absolute;top: 0;left: 0;width: 100%;height: 100%;}#background,.wave {opacity: 0;}#waves,.wave {overflow: hidden;}.wave-container,.wave {border-radius: 50%;}:host(.circle) #background,:host(.circle) #waves {border-radius: 50%;}:host(.circle) .wave-container {overflow: hidden;}</style>
+    
+    <div id="background"></div>
+    <div id="waves"></div>
+  </template>
+</dom-module>
 <dom-module id="paper-dialog-scrollable" assetpath="../components/paper-dialog-scrollable/">
 
   <style>:host {display: block;position: relative;}:host(.is-scrolled:not(:first-child))::before {content: '';position: absolute;top: 0;left: 0;right: 0;height: 1px;background: var(--divider-color);}:host(.can-scroll:not(.scrolled-to-bottom):not(:last-child))::after {content: '';position: absolute;bottom: 0;left: 0;right: 0;height: 1px;background: var(--divider-color);}.scrollable {padding: 0 24px;@apply(--layout-scroll);@apply(--paper-dialog-scrollable);}</style>
@@ -728,17 +739,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 </dom-module>
 
-<dom-module id="paper-ripple" assetpath="../components/paper-ripple/">
-
-  
-  
-  <template>
-    <style>:host {display: block;position: absolute;border-radius: inherit;overflow: hidden;top: 0;left: 0;right: 0;bottom: 0;}:host([animating]) {/* This resolves a rendering issue in Chrome (as of 40) where theripple is not properly clipped by its parent (which may haverounded corners). See: http://jsbin.com/temexa/4Note: We only apply this style conditionally. Otherwise, the browserwill create a new compositing layer for every ripple element on thepage, and that would be bad. */-webkit-transform: translate(0, 0);transform: translate3d(0, 0, 0);}:host([noink]) {pointer-events: none;}#background,#waves,.wave-container,.wave {pointer-events: none;position: absolute;top: 0;left: 0;width: 100%;height: 100%;}#background,.wave {opacity: 0;}#waves,.wave {overflow: hidden;}.wave-container,.wave {border-radius: 50%;}:host(.circle) #background,:host(.circle) #waves {border-radius: 50%;}:host(.circle) .wave-container {overflow: hidden;}</style>
-    
-    <div id="background"></div>
-    <div id="waves"></div>
-  </template>
-</dom-module>
 <dom-module id="paper-button" assetpath="../components/paper-button/">
   <template strip-whitespace="">
 
@@ -843,7 +843,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     
     </dom-module>
 <dom-module id="my-work-space" assetpath="my-work-space/">
-    <style media="screen">:root {display: block;}h2 {color: #fff;text-align: center;}#my-icons-menu {position: absolute;top: 64px;left: 0;width: 72px;height: 100vh;//background: rgba(255, 0, 0, 0.1);color: #fff;text-align: center;}#my-list-items {width: 400px;position: absolute;top: 84px;left: 72px;width: 400px;height: 100vh;color: #333;padding: 0;}#my-main {position: absolute;top: 84px;left: 472px;right: 72px;height: 100vh;color: #fff;padding: 0 20px;}paper-dialog-scrollable.content {height: 100%;}</style>
+    <style media="screen">:root {display: block;min-height: 100vh;}h2 {color: #fff;text-align: center;}#my-icons-menu {position: absolute;top: 0;left: 0;padding-top: 64px;width: 72px;height: 100%;color: #fff;text-align: center;box-sizing: border-box;}#my-list-items {width: 400px;position: absolute;top: 0;left: 72px;width: 400px;height: 100%;box-shadow: inset 0 -3px #000;color: #333;padding: 0;overflow: hidden;padding-top: 80px;display: table-row;box-sizing: border-box;}#my-main {position: absolute;top: 0;left: 472px;right: 72px;height: 100%;color: #fff;padding: 84px 20px 0;}.paper-dialog-scrollable-0 .scrollable.paper-dialog-scrollable {//height: 50vh;}paper-card {height: 100%;width: 100%;}paper-card.content {//height: 100%;position: relative;}</style>
+
     
     <template>
         <iron-media-query query="(min-width: 1024px)" query-matches="{{queryMatches}}"></iron-media-query>
@@ -852,16 +853,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <content select="[menu]"></content>
             </div>
 
-            <paper-card id="my-list-items">
-                <div class="card-content">
-                    <content select="[items]"></content>
-                </div>
-            </paper-card>
+            <div id="my-list-items">
+              <paper-card>
+                  <div class="card-content">
+                      <content select="[items]"></content>
+                  </div>
+              </paper-card>
+            </div>
 
             <div id="my-main">
                 <content select="[main]"></content>
             </div>
         </template>
+
+        
         <template is="dom-if" if="{{!queryMatches}}">
             <paper-dialog-scrollable class="content">
                 <h2>Metre ici le contenue pour les mobiles</h2>
@@ -877,15 +882,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </dom-module>
 <dom-module id="my-meals-list" assetpath="my-meals-list/">
   <template>
-    <style>:host {display: block;box-sizing: border-box;}section {height: 100vh;}.blood-sugar {background: #eee;color: #999;display: block;height: 40px;width: 40px;line-height: 40px;border-radius: 50%;text-align: center;float: left;margin: 5px;font-size: 10px;}.clear {clear: both;height: 1px;display: block;}</style>
+    <style>:host {display: block;box-sizing: border-box;height: 100%;}section {box-sizing: border-box;height: 100%;}.blood-sugar {background: #eee;color: #999;display: block;height: 40px;width: 40px;line-height: 40px;border-radius: 50%;text-align: center;float: left;margin: 5px;font-size: 10px;}.clear {clear: both;height: 1px;display: block;}iron-list {height: auto;overflow: hidden;}.meal-item {height: 72px;}p {line-height: 21px;}.meal-name {margin-top: 16px;margin-bottom: 0;}.meal-date {margin: 0;font-size: 12px;color: #666;}.meal-blod-sugar {margin: 16px;height: 42px;width: 42px;line-height: 42px;font-size: 12px;display: block;float: left;text-align: center;background: #CFD8DC;color: #fff;border-radius: 50%;}paper-ripple {}</style>
 
     <section class="layout vertical">
         <paper-dialog-scrollable class="flex">
           <iron-ajax url="/json/meals.json" last-response="{{data}}" auto=""></iron-ajax>
             <iron-list items="[[data]]" as="item">
               <template>
-                <div>
-                  Name: <span>[[item.name]]</span>
+                <div class="meal-item">
+                  <span class="meal-blod-sugar">{{item.blood_sugar}}</span>
+                  <p class="meal-name">{{item.name}}</p>
+                  <p class="meal-date">date du repas</p>
+                  <paper-ripple></paper-ripple>
                 </div>
               </template>
             </iron-list>
