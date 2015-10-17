@@ -1,33 +1,115 @@
+<!-- Imports polymer -->
 <link rel="import" href="../../components/polymer/polymer.html">
 
+<!-- Defines element markup -->
 <dom-module id="my-meal">
+  <style media="screen">
+    :root {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+    .meal-item {
+      height: 72px;
+    }
+    p {
+      line-height: 21px;
+    }
+    .meal-name {
+      margin: 0;
+      padding-top: 16px;
+      color: #333;
+    }
+    .meal-date {
+      margin: 0;
+      font-size: 12px;
+      color: #666;
+    }
+    .meal-blod-sugar {
+      margin: 16px;
+      height: 42px;
+      width: 42px;
+      line-height: 42px;
+      font-size: 12px;
+      display: block;
+      float: left;
+      text-align: center;
+      background: #CFD8DC;
+      color: #fff;
+      border-radius: 50%;
+    }
+    .hyper {
+      background: #FFD54F;
+   }
+   .grossehyper {
+      background: #E57373;
+   }
+   .hypo {
+     background: #4FC3F7;
+   }
+   .normal {
+      background: #AED581;
+   }
+  </style>
   <template>
-    <style>
-      :host {
-        display: block;
-        box-sizing: border-box;
-      }
-    </style>
-
-
-    <div>
-      <h2>{{titre}}</h2>
-      <p>Glycémie : {{test}}</p>
+    <div class="meal-item">
+      <span class$="{{cssclass(glycemie)}}">{{glycemie}}</span>
+      <div class="meal-content">
+        <p class="meal-name">{{name}}</p>
+        <p class="meal-date">{{convert(date)}}</p>
+      </div>
+      <paper-ripple></paper-ripple>
     </div>
-
   </template>
-</dom-module>
 
-  <script>
+    <!-- Registers custom element -->
+    <script>
     Polymer({
-      is: 'my-meal',
-      properties: {
-        titre: {
-          type: String
-        },
-        test: {
-          type: String
-        }
-      }
+        is: 'my-meal',
+        properties: {
+          glycemie: Number,
+          name: String,
+          date: Date
+       },
+
+      // Convert date format
+      convert: function(date) {
+         var d = new Date(date);
+         var options = {
+             weekday: "long", year: "numeric", month: "short",
+             day: "numeric", hour: "2-digit", minute: "2-digit"
+         };
+         return d.toLocaleTimeString("fr-fr", options);
+      },
+      // Add Class to glycemie for color
+      cssclass: function(glycemie) {
+         var g = glycemie;
+         if ( g > 1.9 ) {
+            css = "grossehyper";
+         } else if ( g > 1.4 ) {
+            css = "hyper";
+         } else if ( g < 0.8 ) {
+            css = "hypo";
+         } else {
+            css = "normal";
+         }
+         return 'meal-blod-sugar ' + css;
+      },
+
+        // Fires when an instance of the element is created
+        created: function() {},
+
+        // Fires when the local DOM has been fully prepared
+        ready: function() {},
+
+        // Fires when the element was inserted into the document
+        attached: function() {},
+
+        // Fires when the element was removed from the document
+        detached: function() {},
+
+        // Fires when an attribute was added, removed, or updated
+        attributeChanged: function(name, type) {}
     });
-  </script>
+    </script>
+</dom-module>

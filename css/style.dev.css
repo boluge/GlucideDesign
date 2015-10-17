@@ -25,7 +25,18 @@ body {
 	padding: 0;
 	background: #333;
 }
+::-webkit-scrollbar {
+    width: 6px;
+}
 
+::-webkit-scrollbar-track {
+
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+		border-radius: 3px;
+}
 .imgBackground {
 	background: url(../img/background2.jpg) #000 no-repeat center center fixed;
 	z-index: -5;

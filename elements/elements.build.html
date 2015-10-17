@@ -831,6 +831,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </dom-module>
 <dom-module id="my-menu-icon" assetpath="my-menu-icon/">
     <style>:host {display: block;box-sizing: border-box;--paper-tooltip-background:	#333;--paper-tooltip-opacity:	0.9;--paper-tooltip-text-color: #fff;}a {text-decoration: none;color: inherit;outline: none;line-height: 58px;display: block;width: 100%;text-align: center;}a:focus {outline: none;}iron-icon {color: #fff;margin: 0 auto;text-shadow: 0 1px 3px rgba(0,0,0,0.5);}</style>
+    
     <template>
       <a id="m" href="{{link}}">
         <paper-item>
@@ -882,19 +883,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </dom-module>
 <dom-module id="my-meals-list" assetpath="my-meals-list/">
   <template>
-    <style>:host {display: block;box-sizing: border-box;height: 100%;}section {box-sizing: border-box;height: 100%;}.blood-sugar {background: #eee;color: #999;display: block;height: 40px;width: 40px;line-height: 40px;border-radius: 50%;text-align: center;float: left;margin: 5px;font-size: 10px;}.clear {clear: both;height: 1px;display: block;}iron-list {height: auto;overflow: hidden;}.meal-item {height: 72px;}p {line-height: 21px;}.meal-name {margin-top: 16px;margin-bottom: 0;}.meal-date {margin: 0;font-size: 12px;color: #666;}.meal-blod-sugar {margin: 16px;height: 42px;width: 42px;line-height: 42px;font-size: 12px;display: block;float: left;text-align: center;background: #CFD8DC;color: #fff;border-radius: 50%;}paper-ripple {}</style>
+    <style>:host {display: block;box-sizing: border-box;height: 100%;}section {box-sizing: border-box;height: 100%;}.clear {clear: both;height: 1px;display: block;}iron-list {height: auto;overflow: hidden;}paper-ripple {}</style>
 
     <section class="layout vertical">
         <paper-dialog-scrollable class="flex">
           <iron-ajax url="/json/meals.json" last-response="{{data}}" auto=""></iron-ajax>
-            <iron-list items="[[data]]" as="item">
+            <iron-list items="{{data}}" as="item">
               <template>
-                <div class="meal-item">
-                  <span class="meal-blod-sugar">{{item.blood_sugar}}</span>
-                  <p class="meal-name">{{item.name}}</p>
-                  <p class="meal-date">date du repas</p>
-                  <paper-ripple></paper-ripple>
-                </div>
+                <my-meal id="{{item.id}}" name="{{item.name}}" date="{{item.created_at}}" glycemie="{{item.blood_sugar}}">
+                </my-meal>
               </template>
             </iron-list>
         <paper-dialog-scrollable>
@@ -902,4 +899,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 </dom-module>
 
-  </div><script src="elements.build.js"></script></body></html>
+  <dom-module id="my-meal" assetpath="my-meal/">
+  <style media="screen">:root {display: block;margin: 0;padding: 0;}.meal-item {height: 72px;}p {line-height: 21px;}.meal-name {margin: 0;padding-top: 16px;color: #333;}.meal-date {margin: 0;font-size: 12px;color: #666;}.meal-blod-sugar {margin: 16px;height: 42px;width: 42px;line-height: 42px;font-size: 12px;display: block;float: left;text-align: center;background: #CFD8DC;color: #fff;border-radius: 50%;}.hyper {background: #FFD54F;}.grossehyper {background: #E57373;}.hypo {background: #4FC3F7;}.normal {background: #AED581;}</style>
+  <template>
+    <div class="meal-item">
+      <span class$="{{cssclass(glycemie)}}">{{glycemie}}</span>
+      <div class="meal-content">
+        <p class="meal-name">{{name}}</p>
+        <p class="meal-date">{{convert(date)}}</p>
+      </div>
+      <paper-ripple></paper-ripple>
+    </div>
+  </template>
+
+    
+    </dom-module>
+</div><script src="elements.build.js"></script></body></html>

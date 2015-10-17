@@ -55,4 +55,5 @@ Polymer({is:"paper-item",hostAttributes:{role:"listitem",tabindex:"0"},behaviors
 !function(){"use strict";Polymer({is:"my-menu-link"})}();
 Polymer({is:"my-menu-icon",created:function(){},ready:function(){},attached:function(){},detached:function(){},attributeChanged:function(n,t){}});
 Polymer({is:"my-work-space",created:function(){},ready:function(){},attached:function(){},detached:function(){},attributeChanged:function(t,n){}});
-Polymer({is:"my-meals-list",properties:{meals:{type:Object}},ready:function(){}});
+Polymer({is:"my-meals-list",properties:{meals:{type:Object}},created:function(){},ready:function(){},attached:function(){},detached:function(){},attributeChanged:function(t,e){}});
+Polymer({is:"my-meal",properties:{glycemie:Number,name:String,date:Date},convert:function(e){var t=new Date(e),n={weekday:"long",year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"};return t.toLocaleTimeString("fr-fr",n)},cssclass:function(e){var t=e;return t>1.9?css="grossehyper":t>1.4?css="hyper":.8>t?css="hypo":css="normal","meal-blod-sugar "+css},created:function(){},ready:function(){},attached:function(){},detached:function(){},attributeChanged:function(e,t){}});

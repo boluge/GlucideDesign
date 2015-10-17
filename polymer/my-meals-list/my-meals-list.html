@@ -12,19 +12,6 @@
             box-sizing: border-box;
             height: 100%;
         }
-        .blood-sugar {
-          background: #eee;
-          color: #999;
-          display: block;
-          height: 40px;
-          width: 40px;
-          line-height: 40px;
-          border-radius: 50%;
-          text-align: center;
-          float: left;
-          margin: 5px;
-          font-size: 10px;
-        }
         .clear {
           clear: both;
           height: 1px;
@@ -34,34 +21,7 @@
           height: auto;
           overflow: hidden;
         }
-        .meal-item {
-          height: 72px;
-        }
-        p {
-          line-height: 21px;
-        }
-        .meal-name {
-          margin-top: 16px;
-          margin-bottom: 0;
-        }
-        .meal-date {
-          margin: 0;
-          font-size: 12px;
-          color: #666;
-        }
-        .meal-blod-sugar {
-          margin: 16px;
-          height: 42px;
-          width: 42px;
-          line-height: 42px;
-          font-size: 12px;
-          display: block;
-          float: left;
-          text-align: center;
-          background: #CFD8DC;
-          color: #fff;
-          border-radius: 50%;
-        }
+
         paper-ripple {
 
         }
@@ -70,14 +30,14 @@
     <section class="layout vertical">
         <paper-dialog-scrollable class="flex">
           <iron-ajax url="/json/meals.json" last-response="{{data}}" auto></iron-ajax>
-            <iron-list items="[[data]]" as="item">
+            <iron-list items="{{data}}" as="item">
               <template>
-                <div class="meal-item">
-                  <span class="meal-blod-sugar">{{item.blood_sugar}}</span>
-                  <p class="meal-name">{{item.name}}</p>
-                  <p class="meal-date">date du repas</p>
-                  <paper-ripple></paper-ripple>
-                </div>
+                <my-meal
+                  id="{{item.id}}"
+                  name="{{item.name}}"
+                  date="{{item.created_at}}"
+                  glycemie="{{item.blood_sugar}}">
+                </my-meal>
               </template>
             </iron-list>
         <paper-dialog-scrollable>
@@ -93,8 +53,23 @@
           type: Object
         }
       },
-      ready: function() {
+      /**
+       * The maximum number of markers
+       */
 
-      }
+      // Fires when an instance of the element is created
+      created: function() {},
+
+      // Fires when the local DOM has been fully prepared
+      ready: function() {},
+
+      // Fires when the element was inserted into the document
+      attached: function() {},
+
+      // Fires when the element was removed from the document
+      detached: function() {},
+
+      // Fires when an attribute was added, removed, or updated
+      attributeChanged: function(name, type) {}
     });
   </script>
