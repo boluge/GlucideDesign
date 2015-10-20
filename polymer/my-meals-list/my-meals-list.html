@@ -44,7 +44,7 @@
       </div>
 
         <paper-dialog-scrollable class="flex">
-          <iron-ajax url="/json/meals.json" last-response="{{data}}" auto></iron-ajax>
+          <iron-ajax url="../json/meals.json" last-response="{{data}}" auto></iron-ajax>
             <iron-list items="{{data}}" as="item">
               <template>
                 <my-meal

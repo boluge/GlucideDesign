@@ -1,2 +1,4 @@
 /node_modules
 /components
+/elements/elements.build.html
+/elements/elements.build.js
